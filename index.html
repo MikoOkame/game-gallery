@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>空巡り — 丘芽美湖 Game Exhibition</title>
+<meta name="description" content="風と、歌と、星をめぐる四つの小さな旅。自作ゲームの展示室。">
+<meta name="theme-color" content="#070a1c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#f4efe4;
+  --muted:rgba(244,239,228,.66);
+  --faint:rgba(244,239,228,.16);
+  --accent:#e9c27c;
+  --serif:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --latin:"Cormorant Garamond",Georgia,serif;
+  --ease:cubic-bezier(.22,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:#070a1c;color:var(--ink);font-family:var(--sans);line-height:1.9;letter-spacing:.04em;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:var(--accent);color:#111}
+
+/* ---------- sky ---------- */
+.sky{position:fixed;inset:0;z-index:-4;opacity:0;transition:opacity 1.6s var(--ease)}
+.sky.on{opacity:1}
+.sky--hero{background:linear-gradient(180deg,#070a1c 0%,#151b45 42%,#3b2f58 74%,#9a6a63 100%)}
+.sky--hane{background:linear-gradient(180deg,#071a20 0%,#11363c 40%,#4e5644 78%,#a77e4c 100%)}
+.sky--kaze{background:linear-gradient(180deg,#101a26 0%,#22364a 45%,#47627a 82%,#7a909f 100%)}
+.sky--hoshi{background:linear-gradient(180deg,#03040f 0%,#0d0c2c 45%,#1d1642 80%,#352155 100%)}
+.sky--oto{background:linear-gradient(180deg,#120d1a 0%,#2c1f2c 42%,#553a3c 78%,#97705a 100%)}
+.grain{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.08;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+#wind{position:fixed;inset:0;width:100%;height:100%;z-index:-3;pointer-events:none}
+
+/* ---------- chrome ---------- */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;
+  padding:18px clamp(16px,4vw,40px);font-family:var(--latin);font-size:15px;letter-spacing:.18em;pointer-events:none}
+.topbar a,.topbar span{pointer-events:auto}
+.topbar .mark{font-family:var(--serif);font-weight:700;letter-spacing:.3em;font-size:14px}
+.topbar .count{font-style:italic;color:var(--muted)}
+.rail{position:fixed;right:clamp(16px,2.4vw,32px);top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;gap:14px}
+.rail a{display:block;width:6px;height:6px;border-radius:6px;background:var(--faint);transition:all .6s var(--ease)}
+.rail a.on{height:28px;background:var(--accent)}
+@media (max-width:900px){.rail{display:none}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:grid;align-content:center;padding:120px clamp(16px,8vw,140px) 100px}
+.hero-kicker{font-family:var(--latin);font-style:italic;font-size:clamp(14px,1.6vw,18px);letter-spacing:.24em;color:var(--muted);margin-bottom:18px}
+.hero-title{font-family:var(--serif);font-weight:800;font-size:clamp(60px,13vw,172px);line-height:1.08;letter-spacing:.1em;white-space:nowrap}
+.hero-title span{display:inline-block;opacity:0;transform:translateY(.4em);filter:blur(8px);animation:rise 1.4s var(--ease) forwards;animation-delay:calc(.25s + var(--i)*.11s)}
+@keyframes rise{to{opacity:1;transform:none;filter:none}}
+.hero-sub{font-family:var(--serif);font-size:clamp(17px,2.2vw,24px);line-height:2;margin-top:22px;color:var(--ink);opacity:0;animation:fade 1.4s 1s var(--ease) forwards}
+@keyframes fade{to{opacity:1}}
+.hero-index{margin-top:clamp(40px,7vh,72px);max-width:560px;border-top:1px solid var(--faint);opacity:0;animation:fade 1.4s 1.3s var(--ease) forwards}
+.hero-index a{display:grid;grid-template-columns:44px 1fr auto 20px;align-items:baseline;gap:12px;padding:16px 4px;border-bottom:1px solid var(--faint);transition:color .4s,padding .5s var(--ease)}
+.hero-index i{font-family:var(--latin);font-size:18px;color:var(--muted)}
+.hero-index b{font-family:var(--serif);font-weight:700;font-size:20px;letter-spacing:.14em}
+.hero-index em{font-family:var(--latin);font-style:italic;color:var(--muted);font-size:16px}
+.hero-index a::after{content:"→";color:var(--muted);transition:transform .5s var(--ease)}
+.hero-index a:hover{color:var(--accent);padding-left:12px}
+.hero-index a:hover::after{transform:translateX(4px);color:var(--accent)}
+.hero-tate{position:absolute;right:clamp(28px,6vw,90px);top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font-family:var(--serif);font-size:15px;letter-spacing:.5em;color:var(--muted);opacity:0;animation:fade 2s 1.6s forwards}
+@media (max-width:760px){.hero-tate{display:none}.hero-index em{display:none}.hero-index a{grid-template-columns:40px 1fr 20px}}
+.cue{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--latin);font-style:italic;font-size:13px;letter-spacing:.3em;color:var(--muted)}
+.cue::after{content:"";width:1px;height:48px;background:linear-gradient(var(--ink),transparent);animation:cue 2.4s var(--ease) infinite;transform-origin:top}
+@keyframes cue{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+/* ---------- exhibits ---------- */
+.exhibit{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(36px,7vw,110px);align-items:center;
+  max-width:1280px;margin:0 auto;padding:clamp(90px,14vh,150px) clamp(16px,7vw,120px)}
+.exhibit:nth-of-type(even) .ex-art{order:2}
+.ex-art{margin:0;justify-self:center;width:100%;max-width:440px}
+.ex-arch{position:relative;aspect-ratio:4/5;border-radius:999px 999px 10px 10px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--faint),0 0 0 10px rgba(255,255,255,.025),0 40px 80px -30px rgba(0,0,0,.7);transition:transform 1s var(--ease),box-shadow 1s}
+.ex-arch:hover{transform:translateY(-6px);box-shadow:0 0 0 1px var(--accent),0 0 0 10px rgba(255,255,255,.04),0 50px 90px -30px rgba(0,0,0,.75)}
+.ex-arch svg,.ex-arch img{display:block;width:100%;height:100%;object-fit:cover}
+.ex-art figcaption{display:flex;justify-content:space-between;margin-top:16px;font-family:var(--latin);font-style:italic;font-size:15px;letter-spacing:.14em;color:var(--muted)}
+.ex-no{font-family:var(--latin);font-size:clamp(60px,8vw,110px);line-height:1;color:var(--accent);font-weight:500}
+.ex-no small{font-size:.28em;font-style:italic;letter-spacing:.1em;margin-right:.3em;vertical-align:.9em;color:var(--muted)}
+.ex-badge{display:inline-block;margin:22px 0 14px;padding:3px 14px;border:1px solid var(--accent);border-radius:99px;color:var(--accent);font-family:var(--latin);font-size:13px;letter-spacing:.24em}
+.ex-title{font-family:var(--serif);font-weight:800;font-size:clamp(46px,7vw,86px);line-height:1.15;letter-spacing:.12em}
+.ex-roman{display:block;font-family:var(--latin);font-style:italic;font-weight:400;font-size:clamp(17px,1.8vw,21px);letter-spacing:.3em;color:var(--muted);margin-top:4px}
+.ex-lead{font-family:var(--serif);font-weight:500;font-size:clamp(18px,2.1vw,23px);line-height:1.8;margin-top:26px}
+.ex-desc{color:var(--muted);font-size:15px;line-height:2.05;margin-top:14px;max-width:34em}
+.ex-spec{display:grid;grid-template-columns:auto 1fr;margin-top:28px;max-width:34em;font-size:14px;border-top:1px solid var(--faint)}
+.ex-spec dt,.ex-spec dd{padding:10px 0;border-bottom:1px solid var(--faint)}
+.ex-spec dt{color:var(--muted);padding-right:28px;letter-spacing:.2em}
+.ex-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+.btn{display:inline-flex;align-items:center;gap:12px;padding:15px 30px;border-radius:99px;font-size:15px;letter-spacing:.16em;transition:transform .5s var(--ease),box-shadow .5s,background .4s,color .4s}
+.btn-play{background:var(--accent);color:#14110c;font-weight:500}
+.btn-play svg{width:12px;height:12px}
+.btn-play:hover{transform:translateY(-3px);box-shadow:0 14px 34px -10px var(--accent)}
+.exhibit::before{content:attr(data-roman);position:absolute;left:50%;bottom:clamp(20px,5vh,50px);transform:translateX(-50%);font-family:var(--latin);font-style:italic;font-size:clamp(70px,15vw,220px);line-height:1;color:rgba(255,255,255,.035);white-space:nowrap;pointer-events:none;z-index:-1}
+@media (max-width:820px){
+  .exhibit{grid-template-columns:1fr;min-height:auto;padding-top:110px;padding-bottom:110px}
+  .exhibit:nth-of-type(even) .ex-art{order:0}
+  .ex-art{max-width:340px}
+}
+
+/* screenshots strip */
+.ex-shots{grid-column:1/-1;order:3;margin-top:clamp(8px,2vw,24px)}
+.shots-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--faint);padding-bottom:10px;margin-bottom:18px;font-family:var(--latin);font-style:italic;letter-spacing:.2em;color:var(--muted);font-size:15px}
+.shots-head b{font-family:var(--serif);font-style:normal;font-weight:700;color:var(--ink);letter-spacing:.24em;font-size:14px}
+.shots{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;scrollbar-width:thin;scrollbar-color:var(--faint) transparent}
+.shot{scroll-snap-align:start;margin:0;position:relative;aspect-ratio:16/10;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04);box-shadow:0 0 0 1px var(--faint);cursor:zoom-in;transition:transform .6s var(--ease),box-shadow .6s}
+.shot:hover{transform:translateY(-4px);box-shadow:0 0 0 1px var(--accent),0 24px 50px -24px rgba(0,0,0,.8)}
+.shot img,.shot video{width:100%;height:100%;object-fit:cover;display:block}
+.shot .vbadge{position:absolute;top:10px;left:10px;padding:2px 9px;border-radius:99px;background:rgba(0,0,0,.55);font-family:var(--latin);font-style:italic;font-size:12px;letter-spacing:.16em;pointer-events:none}
+.shot.empty{cursor:default;display:grid;place-items:center;background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 10px,transparent 10px 20px);box-shadow:inset 0 0 0 1px var(--faint)}
+.shot.empty span{font-family:var(--latin);font-style:italic;letter-spacing:.3em;color:var(--muted);font-size:14px}
+.shot.empty:hover{transform:none;box-shadow:inset 0 0 0 1px var(--faint)}
+.shot figcaption{position:absolute;left:0;right:0;bottom:0;padding:22px 14px 10px;font-size:12px;letter-spacing:.12em;background:linear-gradient(transparent,rgba(0,0,0,.7))}
+@media (max-width:820px){.ex-shots{order:3}.shots{grid-auto-columns:82%}}
+dialog#lightbox{max-width:none;max-height:none;width:100vw;height:100dvh;margin:0;padding:0;border:0;background:rgba(3,4,12,.92);display:none;place-items:center;cursor:zoom-out}
+dialog#lightbox[open]{display:grid;animation:fade .4s}
+dialog#lightbox img,dialog#lightbox video{max-width:94vw;max-height:88dvh;border-radius:6px;box-shadow:0 40px 100px rgba(0,0,0,.6)}
+
+/* reveal */
+.js .reveal{opacity:0;transform:translateY(28px);transition:opacity 1.2s var(--ease),transform 1.2s var(--ease);transition-delay:var(--d,0s)}
+.js .reveal.in{opacity:1;transform:none}
+
+/* ---------- footer ---------- */
+footer{text-align:center;padding:120px 16px 70px;border-top:1px solid var(--faint);max-width:1100px;margin:0 auto}
+footer .thanks{font-family:var(--serif);font-size:clamp(22px,3vw,30px);letter-spacing:.2em}
+footer .en{font-family:var(--latin);font-style:italic;color:var(--muted);letter-spacing:.2em;margin-top:6px}
+footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2em}
+
+
+.toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);z-index:50;padding:12px 22px;border-radius:99px;background:rgba(10,12,28,.9);border:1px solid var(--faint);font-size:14px;opacity:0;pointer-events:none;transition:all .5s var(--ease);white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- svg art motion ---------- */
+.ripple{transform-box:fill-box;transform-origin:center;animation:ripple 3.6s var(--ease) infinite}
+.ripple:nth-of-type(2){animation-delay:1.2s}.ripple:nth-of-type(3){animation-delay:2.4s}
+@keyframes ripple{0%{transform:scale(.4);opacity:.9}100%{transform:scale(3.4);opacity:0}}
+.flap{transform-box:fill-box;transform-origin:center;animation:flap .8s ease-in-out infinite alternate}
+@keyframes flap{to{transform:scaleY(.3)}}
+.drift{animation:drift 5s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(var(--dx),var(--dy))}}
+.note{animation:note 3s ease-out infinite}
+.note:nth-of-type(2){animation-delay:1s}.note:nth-of-type(3){animation-delay:2s}
+@keyframes note{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(18px,-60px);opacity:0}}
+.wstroke{animation:draw 6s var(--ease) infinite}
+.wstroke.b{animation-delay:1.4s}.wstroke.c{animation-delay:2.8s}
+@keyframes draw{0%{stroke-dashoffset:100;opacity:0}8%{opacity:1}55%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.bolt{animation:bolt 4.5s infinite}
+@keyframes bolt{0%,86%,100%{opacity:0}88%,93%{opacity:1}90%{opacity:.15}}
+.cloudflash{animation:cflash 4.5s infinite}
+@keyframes cflash{0%,86%,100%{fill:#38434f}88%,93%{fill:#5b6573}}
+.kwing{transform-box:fill-box;transform-origin:center bottom;animation:kflap .45s ease-in-out infinite alternate}
+@keyframes kflap{to{transform:scaleY(-.6)}}
+.hawk{animation:hawk 7s ease-in-out infinite alternate}
+@keyframes hawk{to{transform:translate(46px,14px)}}
+.ring{transform-box:fill-box;transform-origin:center;animation:ripple 2.4s ease-out infinite}
+.cline{animation:cdraw 7s var(--ease) infinite}
+@keyframes cdraw{0%{stroke-dashoffset:100}45%,85%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2.6s ease-in-out infinite alternate}
+@keyframes twinkle{from{transform:scale(.7);opacity:.6}to{transform:scale(1.15);opacity:1}}
+.shoot{animation:shoot 5s var(--ease) infinite}
+@keyframes shoot{0%{transform:translate(0,0);opacity:0}6%{opacity:1}30%{transform:translate(-230px,190px);opacity:0}100%{transform:translate(-230px,190px);opacity:0}}
+.otonote{animation:otonote 4.2s ease-out infinite;opacity:0}
+@keyframes otonote{0%{transform:translate(0,0) rotate(-8deg);opacity:0}15%{opacity:1}100%{transform:translate(var(--nx),-90px) rotate(10deg);opacity:0}}
+.otohop{animation:otohop 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes otohop{0%,62%,100%{transform:none}66%{transform:translateY(-6px)}70%{transform:none}74%{transform:translateY(-4px)}78%{transform:none}}
+.jarglow{animation:jar 3s ease-in-out infinite alternate}
+@keyframes jar{from{opacity:.55}to{opacity:1}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .hero-title span,.hero-sub,.hero-index,.hero-tate{opacity:1;transform:none;filter:none}
+  .wstroke,.cline{stroke-dashoffset:0}
+  .js .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js')</script>
+
+<div class="sky sky--hero on" data-layer="hero"></div>
+<div class="sky sky--hane" data-layer="hane"></div>
+<div class="sky sky--kaze" data-layer="kaze"></div>
+<div class="sky sky--hoshi" data-layer="hoshi"></div>
+<div class="sky sky--oto" data-layer="oto"></div>
+<canvas id="wind" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="topbar">
+  <a class="mark" href="#top">空巡り</a>
+  <span class="count">Exhibits — 04</span>
+</div>
+<nav class="rail" aria-label="展示ナビゲーション">
+  <a href="#top" data-for="hero" aria-label="入口"></a>
+  <a href="#hanemusubi" data-for="hane" aria-label="羽結び"></a>
+  <a href="#kazewatari" data-for="kaze" aria-label="風渡り"></a>
+  <a href="#hoshitsunagi" data-for="hoshi" aria-label="ほしつなぎ"></a>
+  <a href="#ototsuzuri" data-for="oto" aria-label="音綴り"></a>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="top" data-sky="hero">
+  <p class="hero-kicker">丘芽ゲーム工房 作品一覧</p>
+  <h1 class="hero-title" aria-label="空巡り"><span style="--i:0">空</span><span style="--i:1">巡</span><span style="--i:2">り</span></h1>
+  <p class="hero-sub">風と、歌と、星をめぐる<br>四つの小さな旅。</p>
+  <nav class="hero-index" aria-label="作品一覧">
+    <a href="#hanemusubi"><i>01</i><b>羽結び</b><em>Hanemusubi</em></a>
+    <a href="#kazewatari"><i>02</i><b>風渡り</b><em>Kazewatari</em></a>
+    <a href="#hoshitsunagi"><i>03</i><b>ほしつなぎ</b><em>Hoshitsunagi</em></a>
+    <a href="#ototsuzuri"><i>04</i><b>音綴り</b><em>OtoTsuzuri</em></a>
+  </nav>
+  <p class="hero-tate">触れると、星がこぼれる。</p>
+  <div class="cue">scroll</div>
+</header>
+
+<main>
+<!-- ================= 01 羽結び ================= -->
+<section class="exhibit" id="hanemusubi" data-sky="hane" data-game="hanemusubi" data-roman="Hanemusubi" style="--accent:#ecc57e">
+  <figure class="ex-art reveal">
+    <div class="ex-arch">
+      <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="歌の波紋に集まる鳥の群れ">
+        <defs>
+          <linearGradient id="hbBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c3138"/><stop offset=".55" stop-color="#3f5a4f"/><stop offset="1" stop-color="#d9a65f"/></linearGradient>
+          <radialGradient id="hbSun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe2a3" stop-opacity=".95"/><stop offset=".35" stop-color="#f4c47a" stop-opacity=".5"/><stop offset="1" stop-color="#f4c47a" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="400" height="500" fill="url(#hbBg)"/>
+        <g class="dust" data-n="40" data-h="300" data-c="#fff3d6"></g>
+        <circle cx="200" cy="420" r="170" fill="url(#hbSun)"/>
+        <path d="M0 430 Q70 395 140 420 T270 405 T400 420 V500 H0Z" fill="#20393a" opacity=".85"/>
+        <path d="M0 460 Q90 440 190 458 T400 450 V500 H0Z" fill="#132628"/>
+        <g fill="none" stroke="#ffe7b0" stroke-width="1.4">
+          <circle class="ripple" cx="200" cy="240" r="34" vector-effect="non-scaling-stroke"/>
+          <circle class="ripple" cx="200" cy="240" r="34" vector-effect="non-scaling-stroke"/>
+          <circle class="ripple" cx="200" cy="240" r="34" vector-effect="non-scaling-stroke"/>
+        </g>
+        <g fill="#ffe7b0"><circle class="note" cx="222" cy="222" r="2.6"/><circle class="note" cx="214" cy="218" r="2"/><circle class="note" cx="230" cy="230" r="1.8"/></g>
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <g transform="translate(200 240) scale(1.7)"><g class="flap"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(1.00)" fill="#fff8e6"/></g></g>
+          <g transform="translate(108 168)"><g class="drift" style="--dx:16px;--dy:12px"><g class="flap" style="animation-delay:-.2s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.83)" fill="#f6e6c4"/></g></g></g>
+          <g transform="translate(300 146)"><g class="drift" style="--dx:-14px;--dy:14px"><g class="flap" style="animation-delay:-.5s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.83)" fill="#f6e6c4"/></g></g></g>
+          <g transform="translate(78 296)"><g class="drift" style="--dx:18px;--dy:-10px"><g class="flap" style="animation-delay:-.1s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.75)" fill="#efdcb6"/></g></g></g>
+          <g transform="translate(322 300)"><g class="drift" style="--dx:-16px;--dy:-12px"><g class="flap" style="animation-delay:-.7s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.75)" fill="#efdcb6"/></g></g></g>
+          <g transform="translate(160 104)"><g class="drift" style="--dx:8px;--dy:16px"><g class="flap" style="animation-delay:-.35s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.67)" fill="#e9d3a8"/></g></g></g>
+          <g transform="translate(262 92)"><g class="drift" style="--dx:-8px;--dy:16px"><g class="flap" style="animation-delay:-.6s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.58)" fill="#e9d3a8"/></g></g></g>
+          <g transform="translate(346 214)"><g class="drift" style="--dx:-18px;--dy:4px"><g class="flap" style="animation-delay:-.15s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.58)" fill="#e9d3a8"/></g></g></g>
+          <g transform="translate(52 214)"><g class="drift" style="--dx:18px;--dy:6px"><g class="flap" style="animation-delay:-.45s"><path d="M0 9C-3 6-7 1-12-1Q-13.5-3-10.5-4.2C-6.5-5.2-2.5-2.5 0 1.8C2.5-2.5 6.5-5.2 10.5-4.2Q13.5-3 12-1C7 1 3 6 0 9Z" transform="scale(0.58)" fill="#e9d3a8"/></g></g></g>
+        </g>
+      </svg>
+    </div>
+    <figcaption><span>Prototype</span><span>3D · Browser</span></figcaption>
+  </figure>
+  <div class="ex-text">
+    <p class="ex-no reveal"><small>No.</small>01</p>
+    <p class="ex-badge reveal">NEWEST · PROTOTYPE</p>
+    <h2 class="ex-title reveal">羽結び<span class="ex-roman">Hanemusubi</span></h2>
+    <p class="ex-lead reveal" style="--d:.1s">歌声が、ばらばらの翼をひとつに結ぶ。</p>
+    <p class="ex-desc reveal" style="--d:.15s">空を飛び回りながら歌い、仲間の鳥たちを集めて渡り先を目指す3Dゲーム。<br>歌声に応えて仲間が加わり、小さな群れが大きな渡りへ。<br>旅で出会った仲間たちは図鑑に記録され、いつでも再会できる。<br>現在制作中の最新作のプロトタイプ版。</p>
+    <dl class="ex-spec reveal" style="--d:.2s">
+      <dt>形式</dt><dd>3D／ブラウザ</dd>
+      <dt>遊び</dt><dd>歌で群れを集め、渡り先をめざす</dd>
+      <dt>収集</dt><dd>仲間図鑑</dd>
+    </dl>
+    <div class="ex-actions reveal" style="--d:.25s">
+      <a class="btn btn-play js-play" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>遊んでみる ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 風渡り ================= -->
+<section class="exhibit" id="kazewatari" data-sky="kaze" data-game="kazewatari" data-roman="Kazewatari" style="--accent:#cfe0ea">
+  <figure class="ex-art reveal">
+    <div class="ex-arch">
+      <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="描かれた風に乗る渡り鳥と、鷹と雷雲">
+        <defs>
+          <linearGradient id="kzBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eceee8"/><stop offset="1" stop-color="#aebdc5"/></linearGradient>
+        </defs>
+        <rect width="400" height="500" fill="url(#kzBg)"/>
+        <path d="M0 468 Q100 446 200 462 T400 452 V500 H0Z" fill="#8d9ea8" opacity=".55"/>
+        <g class="cloudflash" fill="#38434f">
+          <circle cx="262" cy="118" r="30"/><circle cx="300" cy="100" r="40"/><circle cx="338" cy="122" r="30"/><circle cx="284" cy="132" r="28"/><circle cx="318" cy="138" r="26"/><rect x="250" y="126" width="104" height="26" rx="13"/>
+        </g>
+        <polyline class="bolt" points="300,150 286,190 304,188 290,236" fill="none" stroke="#f3d77c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+        <g transform="translate(92 96)"><g class="hawk"><path d="M-34 0Q-18-12 0-2Q18-12 34 0Q18-5 4 3L0 12-4 3Q-18-5-34 0Z" fill="#232c36"/></g></g>
+        <g fill="none" stroke="#8a98a3" stroke-linecap="round">
+          <path class="wstroke c" pathLength="100" stroke-dasharray="100" d="M40 476 C150 446 250 474 380 386" stroke-width="1.6" opacity=".35"/>
+          <path class="wstroke b" pathLength="100" stroke-dasharray="100" d="M18 336 C120 306 180 256 260 266 S352 226 392 176" stroke-width="2" opacity=".5"/>
+          <path class="wstroke" pathLength="100" stroke-dasharray="100" id="kzMain" d="M34 420 C112 360 150 304 212 302 S330 330 372 232" stroke-width="3.2"/>
+        </g>
+        <g class="finger" opacity="0">
+          <circle class="ring" cx="0" cy="0" r="10" fill="none" stroke="#7b8994" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <circle cx="0" cy="0" r="4" fill="#7b8994"/>
+          <animateMotion dur="6s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;.55;1" calcMode="spline" keySplines=".22 .8 .2 1;0 0 1 1"><mpath href="#kzMain"/></animateMotion>
+          <animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;.08;.5;.62;1"/>
+        </g>
+        <g>
+          <g transform="scale(.51) translate(-50 -48)" fill="#141c25">
+            <path d="M42 48.5 L18 46 Q14.5 51.5 18 57 L42 54.5Z"/>
+            <path d="M38.5 52 Q38.5 43.5 50 42.5 Q61 41.5 65 46.5 Q68.5 52 63 56.5 Q55.5 61.5 46 60 Q38.5 58.5 38.5 52Z"/>
+            <circle cx="66" cy="42" r="9"/>
+            <path d="M74 40 L81 42.5 L74 45Z"/>
+            <path class="kwing" d="M42 46 Q42 30 54 20 Q58 18 58 22 Q60 30 60 45Z"/>
+          </g>
+          <animateMotion dur="6s" repeatCount="indefinite" rotate="auto"><mpath href="#kzMain"/></animateMotion>
+        </g>
+      </svg>
+    </div>
+    <figcaption><span>First Work</span><span>2D · Browser</span></figcaption>
+  </figure>
+  <div class="ex-text">
+    <p class="ex-no reveal"><small>No.</small>02</p>
+    <p class="ex-badge reveal">FIRST WORK</p>
+    <h2 class="ex-title reveal">風渡り<span class="ex-roman">Kazewatari</span></h2>
+    <p class="ex-lead reveal" style="--d:.1s">指先の一筆が、小さな翼の追い風になる。</p>
+    <p class="ex-desc reveal" style="--d:.15s">指で風を描き、渡り鳥たちを導く2Dゲーム。<br>鷹や嵐を避けながら、できるだけ多くの鳥たちを新天地へと送り届け、ハイスコアを目指す。<br>すべてはここから始まった、最初の一作。</p>
+    <dl class="ex-spec reveal" style="--d:.2s">
+      <dt>形式</dt><dd>2D／ブラウザ</dd>
+      <dt>操作</dt><dd>指で風を描く</dd>
+      <dt>試練</dt><dd>鷹・雷雲</dd>
+    </dl>
+    <div class="ex-actions reveal" style="--d:.25s">
+      <a class="btn btn-play js-play" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>遊んでみる ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 ほしつなぎ ================= -->
+<section class="exhibit" id="hoshitsunagi" data-sky="hoshi" data-game="hoshitsunagi" data-roman="Hoshitsunagi" style="--accent:#c9b6ff">
+  <figure class="ex-art reveal">
+    <div class="ex-arch">
+      <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" role="img" aria-label="流れ星と、つながる星座と、星を集めた瓶">
+        <defs>
+          <radialGradient id="hsBg" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#2b2366"/><stop offset=".55" stop-color="#0d0b2a"/><stop offset="1" stop-color="#04040f"/></radialGradient>
+          <linearGradient id="hsTail" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <radialGradient id="hsGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".9"/><stop offset="1" stop-color="#c9b6ff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="400" height="500" fill="url(#hsBg)"/>
+        <g class="dust" data-n="70" data-h="500" data-c="#ffffff"></g>
+        <polyline class="cline" pathLength="100" stroke-dasharray="100" points="86,148 156,108 226,156 304,118 268,236 172,258 118,330" fill="none" stroke="#d9ccff" stroke-width="1.2" opacity=".8"/>
+        <g fill="#fff6dd">
+          <path class="spark" transform="translate(86 148)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          <path class="spark" style="animation-delay:-.4s" transform="translate(156 108) scale(1.3)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          <path class="spark" style="animation-delay:-.9s" transform="translate(226 156)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          <path class="spark" style="animation-delay:-1.3s" transform="translate(304 118) scale(1.5)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          <path class="spark" style="animation-delay:-.2s" transform="translate(268 236)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          <path class="spark" style="animation-delay:-1.7s" transform="translate(172 258) scale(1.2)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          <path class="spark" style="animation-delay:-.7s" transform="translate(118 330)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+        </g>
+        <g class="shoot"><g transform="translate(380 40) rotate(-40)"><rect x="0" y="-1.2" width="90" height="2.4" rx="1.2" fill="url(#hsTail)"/><circle r="3" fill="#fff"/></g></g>
+        <g transform="translate(200 418)">
+          <circle class="jarglow" r="80" fill="url(#hsGlow)" opacity=".7"/>
+          <rect x="-16" y="-62" width="32" height="12" rx="3" fill="#8c6a4a"/>
+          <rect x="-12" y="-50" width="24" height="12" fill="rgba(220,210,255,.08)" stroke="#d9ccff" stroke-width="1.3"/>
+          <rect x="-40" y="-38" width="80" height="80" rx="24" fill="rgba(220,210,255,.08)" stroke="#d9ccff" stroke-width="1.4"/>
+          <g fill="#fff3c4">
+            <path class="spark" style="animation-delay:-.3s" transform="translate(-14 8) scale(.9)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+            <path class="spark" style="animation-delay:-1.1s" transform="translate(12 -4) scale(1.1)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+            <path class="spark" style="animation-delay:-.6s" transform="translate(8 24) scale(.8)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+            <path class="spark" style="animation-delay:-1.5s" transform="translate(-18 -16) scale(.6)" d="M0-7L1.6-1.6 7 0 1.6 1.6 0 7-1.6 1.6-7 0-1.6-1.6Z"/>
+          </g>
+          <path d="M-30-28 Q-34 0 -28 26" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+    <figcaption><span>Star Collection</span><span>Browser</span></figcaption>
+  </figure>
+  <div class="ex-text">
+    <p class="ex-no reveal"><small>No.</small>03</p>
+    <p class="ex-badge reveal">STAR COLLECTION</p>
+    <h2 class="ex-title reveal">ほしつなぎ<span class="ex-roman">Hoshitsunagi</span></h2>
+    <p class="ex-lead reveal" style="--d:.1s">レイチェルと一緒に、のんびり夜空を眺めるひとときを。</p>
+    <p class="ex-desc reveal" style="--d:.15s">夜空を流れる星たちは、つかまえてコレクションできる。集めた星をつないで、自分だけのオリジナル星座をつくろう。</p>
+    <dl class="ex-spec reveal" style="--d:.2s">
+      <dt>相棒</dt><dd>レイチェル</dd>
+      <dt>遊び</dt><dd>流れ星をつかまえて集める</dd>
+      <dt>創作</dt><dd>オリジナル星座づくり</dd>
+    </dl>
+    <div class="ex-actions reveal" style="--d:.25s">
+      <a class="btn btn-play js-play" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>遊んでみる ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 音綴り ================= -->
+<section class="exhibit" id="ototsuzuri" data-sky="oto" data-game="ototsuzuri" data-roman="OtoTsuzuri" style="--accent:#f3c9a2">
+  <figure class="ex-art reveal">
+    <div class="ex-arch">
+      <svg id="otoArt" viewBox="30 26 340 425" preserveAspectRatio="xMidYMid slice" role="img" aria-label="窓辺のオルゴールと小鳥、窓の外で移り変わる海辺の町の一日">
+        <defs>
+          <linearGradient id="otoSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d7aa0"/><stop offset="1" stop-color="#f1c79a"/></linearGradient>
+          <linearGradient id="otoWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3632"/><stop offset="1" stop-color="#2e2120"/></linearGradient>
+          <radialGradient id="otoGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7b8" stop-opacity=".7"/><stop offset="1" stop-color="#ffe7b8" stop-opacity="0"/></radialGradient>
+          <clipPath id="otoWin"><rect x="62" y="58" width="276" height="270"/></clipPath>
+        </defs>
+        <rect width="400" height="500" fill="url(#otoWall)"/>
+        <g clip-path="url(#otoWin)">
+          <rect x="62" y="58" width="276" height="270" fill="url(#otoSky)"/>
+          <g id="otoStars" opacity="0"><circle cx="316" cy="177" r="1.1" fill="#fff"/><circle cx="282" cy="92" r="0.7" fill="#fff"/><circle cx="235" cy="164" r="1.2" fill="#fff"/><circle cx="303" cy="78" r="1.0" fill="#fff"/><circle cx="247" cy="134" r="0.6" fill="#fff"/><circle cx="193" cy="78" r="1.2" fill="#fff"/><circle cx="299" cy="139" r="0.7" fill="#fff"/><circle cx="311" cy="143" r="1.2" fill="#fff"/><circle cx="295" cy="134" r="0.8" fill="#fff"/><circle cx="227" cy="124" r="0.6" fill="#fff"/><circle cx="147" cy="175" r="0.5" fill="#fff"/><circle cx="77" cy="150" r="0.7" fill="#fff"/><circle cx="209" cy="129" r="0.8" fill="#fff"/><circle cx="335" cy="92" r="0.8" fill="#fff"/><circle cx="119" cy="151" r="0.7" fill="#fff"/><circle cx="161" cy="166" r="0.8" fill="#fff"/><circle cx="216" cy="187" r="0.6" fill="#fff"/><circle cx="81" cy="97" r="1.1" fill="#fff"/><circle cx="231" cy="98" r="0.8" fill="#fff"/><circle cx="112" cy="128" r="0.5" fill="#fff"/><circle cx="254" cy="186" r="1.3" fill="#fff"/><circle cx="264" cy="195" r="0.5" fill="#fff"/><circle cx="143" cy="195" r="1.1" fill="#fff"/><circle cx="176" cy="192" r="1.0" fill="#fff"/><circle cx="286" cy="105" r="0.7" fill="#fff"/><circle cx="185" cy="84" r="0.8" fill="#fff"/><circle cx="326" cy="110" r="0.5" fill="#fff"/><circle cx="76" cy="89" r="1.1" fill="#fff"/><circle cx="163" cy="105" r="0.6" fill="#fff"/><circle cx="331" cy="123" r="0.7" fill="#fff"/><circle cx="80" cy="73" r="0.6" fill="#fff"/><circle cx="248" cy="86" r="0.5" fill="#fff"/><circle cx="197" cy="99" r="1.3" fill="#fff"/><circle cx="97" cy="137" r="1.1" fill="#fff"/></g>
+          <g id="otoMoon" opacity="0"><circle r="9" fill="#f6efd9"/><circle cx="-3" cy="-2" r="2" fill="#ddd2b6"/><circle cx="3" cy="3" r="1.4" fill="#ddd2b6"/><circle cx="2.5" cy="-3.5" r="1" fill="#ddd2b6"/></g>
+          <g id="otoSun"><circle r="26" fill="url(#otoGlow)"/><circle r="10" fill="#fff4dc"/></g>
+          <path id="otoMount" d="M62 238 Q100 222 140 232 T220 226 T300 234 T338 228 V250 H62Z" fill="#8e7a92" opacity=".75"/>
+          <rect id="otoSea" x="62" y="246" width="276" height="60" fill="#8a7e9e"/>
+          <rect id="otoGlint" x="0" y="246" width="6" height="40" fill="#fff1d2" opacity=".5"/>
+          <path id="otoTown" d="M62 300 L62 284 L78 284 L86 272 L94 284 L112 284 L112 276 L126 276 L134 264 L142 276 L160 276 L160 282 L176 282 L186 268 L196 282 L210 282 L210 276 L228 276 L236 266 L244 276 L262 276 L262 284 L274 284 L284 270 L294 284 L312 284 L312 278 L326 278 L338 270 L338 330 L62 330Z" fill="#4c3d4a"/>
+          <rect class="otowin" data-th="0.26" x="92" y="282" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.14" x="104" y="290" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.41" x="130" y="278" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.19" x="146" y="288" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.11" x="168" y="284" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.41" x="196" y="280" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.88" x="214" y="290" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.77" x="238" y="282" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.74" x="258" y="288" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.25" x="276" y="280" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.53" x="300" y="286" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.30" x="318" y="292" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.21" x="120" y="296" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.15" x="226" y="296" width="4" height="5" fill="#ffd38a" opacity="0"/><rect class="otowin" data-th="0.24" x="288" y="298" width="4" height="5" fill="#ffd38a" opacity="0"/>
+          <g stroke="#2a1d20" stroke-width="2.4"><line x1="70" y1="300" x2="70" y2="328"/><line x1="84" y1="300" x2="84" y2="328"/><line x1="98" y1="300" x2="98" y2="328"/><line x1="112" y1="300" x2="112" y2="328"/><line x1="126" y1="300" x2="126" y2="328"/><line x1="140" y1="300" x2="140" y2="328"/><line x1="154" y1="300" x2="154" y2="328"/><line x1="168" y1="300" x2="168" y2="328"/><line x1="182" y1="300" x2="182" y2="328"/><line x1="196" y1="300" x2="196" y2="328"/><line x1="210" y1="300" x2="210" y2="328"/><line x1="224" y1="300" x2="224" y2="328"/><line x1="238" y1="300" x2="238" y2="328"/><line x1="252" y1="300" x2="252" y2="328"/><line x1="266" y1="300" x2="266" y2="328"/><line x1="280" y1="300" x2="280" y2="328"/><line x1="294" y1="300" x2="294" y2="328"/><line x1="308" y1="300" x2="308" y2="328"/><line x1="322" y1="300" x2="322" y2="328"/><line x1="336" y1="300" x2="336" y2="328"/><line x1="62" y1="300" x2="338" y2="300" stroke-width="3.5"/></g>
+          <rect id="otoDim" x="62" y="58" width="276" height="270" fill="#0c0a18" opacity="0"/>
+        </g>
+        <!-- 開いた窓とカーテン -->
+        <path d="M62 58 L100 72 L100 312 L62 328Z" fill="none" stroke="#5a3e33" stroke-width="5"/>
+        <path d="M338 58 L300 72 L300 312 L338 328Z" fill="none" stroke="#5a3e33" stroke-width="5"/>
+        <path d="M81 66 V320 M62 190 L100 192 M338 190 L300 192 M319 66 V320" stroke="#5a3e33" stroke-width="3"/>
+        <rect x="56" y="52" width="288" height="282" fill="none" stroke="#3a2826" stroke-width="10"/>
+        <path d="M30 40 Q64 120 52 220 Q44 300 70 352 L30 352Z" fill="#6a4b45" opacity=".85"/>
+        <path d="M370 40 Q336 120 348 220 Q356 300 330 352 L370 352Z" fill="#6a4b45" opacity=".85"/>
+        <!-- 窓台 -->
+        <rect x="36" y="330" width="328" height="20" fill="#6a4d40"/>
+        <rect x="36" y="350" width="328" height="8" fill="#3e2c27"/>
+        <path d="M30 404 H370" stroke="#3e2c27" stroke-width="3"/><rect x="30" y="406" width="340" height="50" fill="#2a1e1d"/>
+        <ellipse cx="200" cy="332" rx="46" ry="5" fill="#8f7766" opacity=".6"/>
+        <!-- オルゴール -->
+        <g transform="translate(200 330)">
+          <path d="M-28 -34 L28 -34 L25 -68 L-25 -68Z" fill="#7a5644" stroke="#2c1b16" stroke-width="1.5"/><path d="M-21 -39 L21 -39 L19 -63 L-19 -63Z" fill="#8e6a54" stroke="#5b3a2d" stroke-width="1"/><circle cx="0" cy="-51" r="5" fill="none" stroke="#c9a46a" stroke-width="1"/>
+          <rect x="-30" y="-34" width="60" height="34" rx="2" fill="#5b3a2d" stroke="#2c1b16" stroke-width="1.5"/>
+          <rect x="-24" y="-30" width="48" height="6" fill="#3d271f"/>
+          <rect x="-6" y="-16" width="12" height="5" rx="1" fill="#c9a46a"/>
+        </g>
+        <g fill="#ffe6c2" font-weight="700">
+          <text class="otonote" style="--nx:-18px" x="190" y="290" font-size="20">♪</text>
+          <text class="otonote" style="--nx:14px;animation-delay:1.4s" x="204" y="292" font-size="17">♫</text>
+          <text class="otonote" style="--nx:-6px;animation-delay:2.8s" x="198" y="288" font-size="18">♪</text>
+        </g>
+        <!-- 小鳥 -->
+        <g transform="translate(286 312) scale(-.62 .62)"><g class="otohop" fill="#f1e8d6">
+          <path d="M-6 6 L-34 2 Q-36 9 -32 14 L-6 12Z"/>
+          <ellipse cx="0" cy="8" rx="17" ry="14"/>
+          <circle cx="14" cy="-6" r="11"/>
+          <path d="M24 -8 L32 -5 L24 -2Z" fill="#c9a76a"/>
+          <circle cx="17" cy="-8" r="1.8" fill="#2a1d20"/>
+          <path d="M-2 22 V28 M6 22 V28" stroke="#c9a76a" stroke-width="2.4"/>
+        </g></g>
+        <!-- 室内の暗さ -->
+        <rect id="otoRoom" width="400" height="500" fill="#0a0812" opacity=".15" pointer-events="none"/>
+        <path d="M62 58 H338 V328 H62Z M0 0 V500 H400 V0Z" fill="none"/>
+      </svg>
+    </div>
+    <figcaption><span>Music Box</span><span>3D · Browser</span></figcaption>
+  </figure>
+  <div class="ex-text">
+    <p class="ex-no reveal"><small>No.</small>04</p>
+    <p class="ex-badge reveal">MUSIC PLAYER</p>
+    <h2 class="ex-title reveal">音綴り<span class="ex-roman">OtoTsuzuri</span></h2>
+    <p class="ex-lead reveal" style="--d:.1s">窓辺のオルゴールが、旅の歌を奏でる。</p>
+    <p class="ex-desc reveal" style="--d:.15s">歌う鳥たちと一緒に、これまでの作品のBGMが楽しめる音楽プレイヤー。<br>窓の外は朝から夜へ、ゆっくりと一日をめぐっていく。<br>収録楽曲は随時追加予定。</p>
+    <dl class="ex-spec reveal" style="--d:.2s">
+      <dt>形式</dt><dd>3D／音楽プレイヤー</dd>
+      <dt>時間</dt><dd>12分でめぐる、朝から夜までの一日</dd>
+      <dt>遊び</dt><dd>鳥に触れて一緒に歌う</dd>
+    </dl>
+    <div class="ex-actions reveal" style="--d:.25s">
+      <a class="btn btn-play js-play" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>聴いてみる ↗</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer data-sky="oto">
+  <p class="en">Thank you for visiting.</p>
+  <p class="copy">© <span class="js-year"></span> <span class="js-artist">丘芽美湖</span> — All games playable in your browser.</p>
+</footer>
+
+<dialog id="lightbox" aria-label="スクリーンショット拡大"><img alt=""></dialog>
+<div class="toast" role="status"></div>
+
+<script>
+/* ============================================================
+   ★ 編集するのはここだけ ★
+   play  : GitHub Pages の公開URL
+   thumb : アーチ窓の画像URL（空ならイラストを表示）
+   shots : スクショ一覧。{ src: "画像URL", cap: "キャプション" } を好きなだけ
+           動画も可：{ src: "shots/xx.mp4", poster: "shots/xx.jpg", cap: "…" }
+             （.mp4 / .webm / .mov は自動で動画扱い。音なしでループ再生、
+               画面に入ったときだけ読み込み・再生する。poster は読み込み前の静止画）
+           空の枠は「NOW PRINTING」で表示される
+   ============================================================ */
+const SITE = {
+  artist: "丘芽美湖",
+  emptySlots: 3, // スクショが無い作品に表示する空枠の数（0で非表示）
+  games: {
+    hanemusubi: {
+      title: "羽結び",
+      play: "https://mikookame.github.io/hanemusubi/play",
+      thumb: "",
+      shots: [
+        { src: "shots/hanemusubi-01.mp4", poster: "shots/hanemusubi-01-poster.jpg", cap: "空を渡る" },
+        { src: "shots/hanemusubi-02.jpg", cap: "群れで島を目指す" },
+        { src: "shots/hanemusubi-03.jpg", cap: "みんなで歌う" }
+      ]
+    },
+    kazewatari: {
+      title: "風渡り",
+      play: "https://mikookame.github.io/kazewatari/",
+      thumb: "",
+      shots: [
+        { src: "shots/kazewatari-01.mp4", poster: "shots/kazewatari-01.jpg", cap: "風が群れを導く" },
+        { src: "shots/kazewatari-02.jpg", cap: "海渡り" },
+        { src: "shots/kazewatari-03.jpg", cap: "嵐の夜" }
+      ]
+    },
+    ototsuzuri: {
+      title: "音綴り",
+      play: "https://mikookame.github.io/ototsuzuri/",
+      thumb: "",
+      shots: [
+        { src: "shots/ototsuzuri-01.mp4", poster: "shots/ototsuzuri-01.jpg", cap: "窓辺のオルゴールと鳥たち" },
+        { src: "shots/ototsuzuri-02.mp4", poster: "shots/ototsuzuri-02.jpg", cap: "時間の移り変わり" }
+      ]
+    },
+    hoshitsunagi: {
+      title: "ほしつなぎ",
+      play: "https://mikookame.github.io/hoshitsunagi/",
+      thumb: "",
+      shots: [
+        { src: "shots/hoshitsunagi-01.mp4", poster: "shots/hoshitsunagi-01.jpg", cap: "流れ星をつかまえる" },
+        { src: "shots/hoshitsunagi-02.jpg", cap: "タイトル画面" },
+        { src: "shots/hoshitsunagi-03.jpg", cap: "オリジナル星座を作ろう" }
+      ]
+    }
+  }
+};
+
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  /* ---- config ---- */
+  const isVid = u => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u);
+  const vio = new IntersectionObserver(es => es.forEach(e => {
+    const v = e.target;
+    if (e.isIntersecting) {
+      if (!v.src) { v.src = v.dataset.src; }
+      if (!reduce) v.play().catch(() => {});
+    } else v.pause();
+  }), { threshold: .4 });
+  $$('.js-artist').forEach(el => el.textContent = SITE.artist);
+  $('.js-year').textContent = new Date().getFullYear();
+  $$('[data-game]').forEach(sec => {
+    const g = SITE.games[sec.dataset.game]; if (!g) return;
+    $('.js-play', sec).href = g.play;
+    if (g.thumb) { const arch = $('.ex-arch', sec); arch.innerHTML = ''; const img = new Image(); img.src = g.thumb; img.alt = g.title + 'のスクリーンショット'; arch.append(img); }
+
+    const shots = g.shots || [];
+    if (!shots.length && !SITE.emptySlots) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'ex-shots reveal';
+    wrap.innerHTML = `<div class="shots-head"><b>場面</b><span>Scenes — ${String(shots.length).padStart(2, '0')}</span></div><div class="shots"></div>`;
+    const row = $('.shots', wrap);
+    if (shots.length) {
+      shots.forEach(s => {
+        const f = document.createElement('figure'); f.className = 'shot';
+        const alt = s.cap || g.title;
+        if (isVid(s.src)) {
+          const v = document.createElement('video');
+          v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+          v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+          if (s.poster) v.poster = s.poster;
+          v.dataset.src = s.src; v.setAttribute('aria-label', alt);
+          f.append(v); f.insertAdjacentHTML('beforeend', '<span class="vbadge">Movie</span>');
+          vio.observe(v);
+        } else {
+          const img = new Image(); img.src = s.src; img.alt = alt; img.loading = 'lazy';
+          f.append(img);
+        }
+        if (s.cap) { const c = document.createElement('figcaption'); c.textContent = s.cap; f.append(c); }
+        f.addEventListener('click', () => openLight(s.src, alt));
+        row.append(f);
+      });
+    } else {
+      for (let i = 0; i < SITE.emptySlots; i++) row.insertAdjacentHTML('beforeend', `<div class="shot empty"><span>NOW PRINTING</span></div>`);
+    }
+    sec.append(wrap);
+  });
+
+  const lb = $('#lightbox');
+  function openLight(src, alt) {
+    lb.innerHTML = '';
+    if (isVid(src)) {
+      const v = document.createElement('video');
+      v.src = src; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.controls = true;
+      v.setAttribute('playsinline', ''); v.setAttribute('aria-label', alt);
+      v.addEventListener('click', e => e.stopPropagation());
+      lb.append(v);
+    } else { const im = new Image(); im.src = src; im.alt = alt; lb.append(im); }
+    lb.showModal ? lb.showModal() : open(src, '_blank');
+  }
+  lb.addEventListener('click', () => lb.close());
+  lb.addEventListener('close', () => { lb.innerHTML = ''; });
+
+  /* ---- star dust inside art ---- */
+  $$('.dust').forEach(g => {
+    const n = +g.dataset.n, h = +g.dataset.h, c = g.dataset.c, ns = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < n; i++) {
+      const s = document.createElementNS(ns, 'circle');
+      s.setAttribute('cx', (Math.random() * 400).toFixed(1));
+      s.setAttribute('cy', (Math.random() * h).toFixed(1));
+      s.setAttribute('r', (Math.random() * 1.1 + .25).toFixed(2));
+      s.setAttribute('fill', c);
+      s.setAttribute('opacity', (Math.random() * .6 + .2).toFixed(2));
+      g.append(s);
+    }
+  });
+  if (reduce) $$('svg').forEach(s => s.pauseAnimations && s.pauseAnimations());
+
+
+  /* ---- 音綴り：窓の外の一日 ---- */
+  (() => {
+    const svg = $('#otoArt'); if (!svg) return;
+    const K = [ // t, 空上, 空下, 海, 山, 町, 室内の暗さ, 窓外の暗さ, 星
+      [0.00, '#4b4f7e', '#e8a98c', '#6f6f93', '#6d6684', '#3c3446', .30, .10, .25],
+      [0.18, '#8fb4cf', '#f2e2c4', '#8fa9bb', '#93a3ad', '#5d5a64', .14, 0, 0],
+      [0.42, '#7fb1d6', '#dcebe8', '#7fa6bc', '#a7bca6', '#62606a', .10, 0, 0],
+      [0.66, '#8d7aa0', '#f1c79a', '#8a7e9e', '#8e7a92', '#4c3d4a', .20, 0, 0],
+      [0.80, '#151a3d', '#3d3560', '#2a2c4c', '#2c2a44', '#1d1a26', .52, .22, 1],
+      [0.94, '#121633', '#2c2b52', '#232542', '#262540', '#1a1824', .55, .25, 1],
+      [1.00, '#4b4f7e', '#e8a98c', '#6f6f93', '#6d6684', '#3c3446', .30, .10, .25]
+    ];
+    const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+    const mix = (a, b, f) => '#' + hx(a).map((v, i) => Math.round(v + (hx(b)[i] - v) * f).toString(16).padStart(2, '0')).join('');
+    const stops = $$('#otoSky stop'), sun = $('#otoSun'), moon = $('#otoMoon'), glint = $('#otoGlint');
+    const wins = $$('.otowin'), PERIOD = 48000;
+    const set = t => {
+      let i = 0; while (K[i + 1][0] < t) i++;
+      const a = K[i], b = K[i + 1], f = (t - a[0]) / (b[0] - a[0]);
+      const c = j => mix(a[j], b[j], f), n = j => a[j] + (b[j] - a[j]) * f;
+      stops[0].setAttribute('stop-color', c(1)); stops[1].setAttribute('stop-color', c(2));
+      $('#otoSea').setAttribute('fill', c(3)); $('#otoMount').setAttribute('fill', c(4)); $('#otoTown').setAttribute('fill', c(5));
+      $('#otoRoom').setAttribute('opacity', n(6).toFixed(3)); $('#otoDim').setAttribute('opacity', n(7).toFixed(3)); $('#otoStars').setAttribute('opacity', n(8).toFixed(3));
+      // 太陽：0.02〜0.76 で空を渡る
+      const su = (t - .02) / .74;
+      if (su > 0 && su < 1) {
+        const x = 70 + su * 260, y = 252 - Math.sin(su * Math.PI) * 170;
+        sun.setAttribute('transform', `translate(${x} ${y})`); sun.setAttribute('opacity', 1);
+        const low = 1 - Math.sin(su * Math.PI);
+        glint.setAttribute('x', x - 3); glint.setAttribute('opacity', (low * .7).toFixed(2));
+        glint.setAttribute('fill', low > .5 ? '#ffd9a8' : '#fff4dc');
+      } else { sun.setAttribute('opacity', 0); glint.setAttribute('opacity', 0); }
+      // 月：0.74〜1.04 で別の弧を渡る
+      let mu = (t < .2 ? t + 1 : t) - .74; mu /= .30;
+      if (mu > 0 && mu < 1) { moon.setAttribute('transform', `translate(${90 + mu * 230} ${240 - Math.sin(mu * Math.PI) * 140})`); moon.setAttribute('opacity', 1); }
+      else moon.setAttribute('opacity', 0);
+      // 窓明かり：夕方から一つずつ灯り、夜更けに一つずつ消える
+      const on = t < .62 ? 0 : t < .82 ? (t - .62) / .2 : t < .9 ? 1 : 1 - (t - .9) / .1 * .7;
+      const late = t > .9 || t < .05;
+      wins.forEach(w => { const th = +w.dataset.th; w.setAttribute('opacity', (late ? th > .3 && on > th - .3 : on > th) ? .95 : 0); });
+    };
+    if (reduce) { set(.68); return; }
+    let vis = false;
+    new IntersectionObserver(es => es.forEach(e => vis = e.isIntersecting)).observe(svg);
+    const t0 = performance.now() - PERIOD * .62;
+    const loop = now => { if (vis) set(((now - t0) % PERIOD) / PERIOD); requestAnimationFrame(loop); };
+    set(.62); requestAnimationFrame(loop);
+  })();
+
+  /* ---- reveal ---- */
+  const ro = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); } }), { threshold: .15 });
+  $$('.reveal').forEach(el => ro.observe(el));
+
+  /* ---- sky switching ---- */
+  const tints = { hero: [255, 240, 220], hane: [255, 226, 160], kaze: [214, 232, 244], hoshi: [214, 200, 255], oto: [255, 214, 178] };
+  let target = tints.hero.slice(), cur = tints.hero.slice();
+  const setSky = key => {
+    $$('.sky').forEach(l => l.classList.toggle('on', l.dataset.layer === key));
+    $$('.rail a').forEach(a => a.classList.toggle('on', a.dataset.for === key));
+    target = tints[key].slice();
+  };
+  const so = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) setSky(e.target.dataset.sky); }), { rootMargin: '-45% 0px -45% 0px' });
+  $$('[data-sky]').forEach(el => so.observe(el));
+  setSky('hero');
+
+  /* ---- wind canvas ---- */
+  const cv = $('#wind'), cx = cv.getContext('2d');
+  let W, H, parts = [], fx = [];
+  const mk = () => ({ x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, bx: .1 + Math.random() * .25, by: -.03 - Math.random() * .08, r: Math.random() * 1.3 + .3, p: Math.random() * 6.28, s: .5 + Math.random() * 1.5 });
+  const size = () => {
+    const d = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; cx.setTransform(d, 0, 0, d, 0, 0);
+    const n = Math.round(Math.min(170, Math.max(60, W * H / 9000)));
+    parts = Array.from({ length: n }, mk);
+  };
+  size(); addEventListener('resize', size);
+
+  let px = -9999, py = -9999, pvx = 0, pvy = 0, lt = 0;
+  const move = (x, y) => {
+    const now = performance.now();
+    if (px > -9999 && now - lt < 100) { const dt = Math.max(16, now - lt); pvx = (x - px) / dt * 16; pvy = (y - py) / dt * 16; }
+    px = x; py = y; lt = now;
+  };
+
+  const draw = t => {
+    cx.clearRect(0, 0, W, H);
+    for (let i = 0; i < 3; i++) cur[i] += (target[i] - cur[i]) * .03;
+    const tint = cur.map(Math.round).join(',');
+    pvx *= .92; pvy *= .92;
+    for (const p of parts) {
+      if (!reduce) {
+        const dx = p.x - px, dy = p.y - py, d2 = dx * dx + dy * dy;
+        if (d2 < 25600) { const f = 1 - Math.sqrt(d2) / 160; p.vx += pvx * f * .06; p.vy += pvy * f * .06; }
+        p.vx += (p.bx - p.vx) * .02; p.vy += (p.by - p.vy) * .02;
+        p.x += p.vx; p.y += p.vy;
+        if (p.x > W + 10) p.x = -10; if (p.x < -10) p.x = W + 10;
+        if (p.y < -10) p.y = H + 10; if (p.y > H + 10) p.y = -10;
+      }
+      const a = reduce ? .5 : .35 + .45 * Math.sin(t * .001 * p.s + p.p);
+      cx.fillStyle = `rgba(${tint},${a})`;
+      cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 6.283); cx.fill();
+    }
+    // tap stars
+    fx = fx.filter(f => (f.life -= f.decay) > 0);
+    for (const f of fx) {
+      if (f.ring) {
+        const k = 1 - f.life;
+        cx.strokeStyle = `rgba(${f.c},${f.life * .7})`; cx.lineWidth = 1.5 * f.life;
+        cx.beginPath(); cx.arc(f.x, f.y, 6 + k * 46, 0, 6.283); cx.stroke();
+        continue;
+      }
+      f.vx *= .93; f.vy = f.vy * .93 + .06; f.x += f.vx; f.y += f.vy; f.rot += f.vr;
+      const r = f.r * (.4 + f.life * .8);
+      cx.save(); cx.translate(f.x, f.y); cx.rotate(f.rot);
+      cx.shadowColor = `rgba(${f.c},.9)`; cx.shadowBlur = 10;
+      cx.fillStyle = `rgba(${f.c},${Math.min(1, f.life * 1.4)})`;
+      cx.beginPath();
+      for (let i = 0; i < 8; i++) { const ang = i * Math.PI / 4, rr = i % 2 ? r * .32 : r; cx.lineTo(Math.cos(ang) * rr, Math.sin(ang) * rr); }
+      cx.closePath(); cx.fill(); cx.restore();
+    }
+    if (!reduce) requestAnimationFrame(draw);
+  };
+  const burst = (x, y) => {
+    const base = cur.map(Math.round).join(',');
+    const pal = [base, '255,246,214', '255,255,255'];
+    fx.push({ x, y, life: 1, decay: .035, ring: true, c: base });
+    const n = 9 + (Math.random() * 4 | 0);
+    for (let i = 0; i < n; i++) {
+      const ang = Math.random() * 6.283, sp = 2 + Math.random() * 4.5;
+      fx.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1, r: 3 + Math.random() * 5, rot: Math.random() * 6.283, vr: (Math.random() - .5) * .3, life: 1, decay: .018 + Math.random() * .016, c: pal[i % 3] });
+    }
+    if (fx.length > 300) fx.splice(0, fx.length - 300);
+  };
+  if (!reduce) {
+    addEventListener('pointermove', e => move(e.clientX, e.clientY), { passive: true });
+    addEventListener('touchmove', e => { const t = e.touches[0]; if (t) move(t.clientX, t.clientY); }, { passive: true });
+    document.addEventListener('mouseleave', () => { px = py = -9999; });
+    addEventListener('pointerdown', e => burst(e.clientX, e.clientY), { passive: true });
+  }
+  requestAnimationFrame(draw);
+
+  /* ---- play (new tab) ---- */
+  const toast = $('.toast');
+  let tt;
+  const say = m => { toast.textContent = m; toast.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => toast.classList.remove('show'), 2600); };
+  $$('.js-play').forEach(btn => btn.addEventListener('click', e => {
+    const g = SITE.games[btn.closest('[data-game]').dataset.game];
+    if (!g.play || g.play.includes('YOUR_GITHUB_NAME')) { e.preventDefault(); say('URLが未設定です（SITE.games を編集）'); }
+  }));
+})();
+</script>
+</body>
+</html>
