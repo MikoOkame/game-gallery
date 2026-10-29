@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ホーム画面に追加 — 空巡り</title>
+<meta name="description" content="ゲームをスマートフォンのホーム画面に追加して、アプリのように遊ぶ方法。iPhone・Android対応。">
+<meta name="theme-color" content="#070a1c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#f4efe4;
+  --muted:rgba(244,239,228,.66);
+  --faint:rgba(244,239,228,.16);
+  --card:rgba(255,255,255,.04);
+  --accent:#e9c27c;
+  --sky:linear-gradient(180deg,#070a1c 0%,#151b45 42%,#3b2f58 74%,#9a6a63 100%);
+  --serif:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --latin:"Cormorant Garamond",Georgia,serif;
+  --ease:cubic-bezier(.22,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:#070a1c;color:var(--ink);font-family:var(--sans);line-height:1.9;letter-spacing:.04em;overflow-x:hidden;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:var(--accent);color:#111}
+
+.sky{position:fixed;inset:0;z-index:-2;background:var(--sky)}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.08;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{max-width:720px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 16px calc(60px + env(safe-area-inset-bottom))}
+
+/* ---------- top ---------- */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
+.back{display:inline-flex;align-items:center;gap:8px;padding:8px 16px 8px 12px;border:1px solid var(--faint);border-radius:99px;color:var(--muted);transition:color .3s,border-color .3s}
+.back:hover{color:var(--accent);border-color:var(--accent)}
+.mark{font-family:var(--serif);font-weight:700;letter-spacing:.3em;font-size:13px;color:var(--muted)}
+
+/* ---------- head ---------- */
+.head{padding:56px 0 36px}
+.kicker{font-family:var(--latin);font-style:italic;letter-spacing:.24em;color:var(--muted);font-size:15px}
+.title{font-family:var(--serif);font-weight:800;font-size:clamp(30px,7.4vw,48px);line-height:1.4;letter-spacing:.08em;margin-top:8px}
+.title .game{color:var(--accent)}
+.lead{margin-top:18px;color:var(--muted);font-size:15px;line-height:2}
+.merits{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.merits li{list-style:none;padding:4px 14px;border:1px solid var(--faint);border-radius:99px;font-size:13px}
+
+/* ---------- tabs ---------- */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;border:1px solid var(--faint);border-radius:99px;background:rgba(0,0,0,.2)}
+.tab{padding:12px 8px;border-radius:99px;font-size:15px;letter-spacing:.1em;color:var(--muted);transition:background .4s var(--ease),color .4s}
+.tab[aria-selected="true"]{background:var(--accent);color:#14110c;font-weight:700}
+.tab small{font-family:var(--latin);font-style:italic;font-weight:500;margin-left:6px;opacity:.75}
+.detected{text-align:center;margin-top:10px;font-size:12px;color:var(--muted);min-height:1.9em}
+
+/* ---------- panel ---------- */
+.panel{margin-top:28px}
+.panel[hidden]{display:none}
+.req{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:10px;background:var(--card);box-shadow:inset 0 0 0 1px var(--faint);font-size:14px}
+.req b{color:var(--accent);font-weight:700}
+.req svg{flex:none;width:20px;height:20px;margin-top:3px;color:var(--accent)}
+
+.steps{list-style:none;counter-reset:s;margin-top:26px}
+.step{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:22px 0;border-top:1px solid var(--faint)}
+.step:last-child{border-bottom:1px solid var(--faint)}
+.step::before{content:counter(s,decimal-leading-zero);font-family:var(--latin);font-size:34px;line-height:1;color:var(--accent)}
+.step h3{font-family:var(--serif);font-weight:700;font-size:18px;line-height:1.6;letter-spacing:.06em}
+.step p{margin-top:6px;color:var(--muted);font-size:14px;line-height:1.95}
+.ui{display:inline-flex;align-items:center;gap:4px;padding:0 8px;margin:0 2px;border-radius:6px;background:rgba(255,255,255,.1);color:var(--ink);font-weight:500;white-space:nowrap;line-height:1.7}
+.ui svg{width:15px;height:15px}
+.toggle{display:inline-block;width:30px;height:18px;border-radius:99px;background:#34c759;position:relative;vertical-align:-3px;margin-left:2px}
+.toggle::after{content:"";position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff}
+
+.note{margin-top:22px;padding:16px 18px;border-left:2px solid var(--accent);background:var(--card);border-radius:0 10px 10px 0;font-size:13.5px;color:var(--muted);line-height:1.95}
+.note b{color:var(--ink);font-weight:500}
+.note + .note{margin-top:10px}
+
+/* ---------- done ---------- */
+.done{margin-top:40px;text-align:center;padding:32px 20px;border-radius:14px;background:var(--card);box-shadow:inset 0 0 0 1px var(--faint)}
+.done h2{font-family:var(--serif);font-weight:700;font-size:20px;letter-spacing:.1em}
+.done p{margin-top:8px;color:var(--muted);font-size:14px}
+.btn{display:inline-flex;align-items:center;gap:10px;margin-top:20px;padding:14px 28px;border-radius:99px;background:var(--accent);color:#14110c;font-weight:700;letter-spacing:.12em;font-size:15px;transition:transform .5s var(--ease),box-shadow .5s}
+.btn:hover{transform:translateY(-3px);box-shadow:0 14px 34px -10px var(--accent)}
+
+.standalone{display:none;margin-top:26px;padding:16px 18px;border-radius:10px;background:rgba(52,199,89,.12);box-shadow:inset 0 0 0 1px rgba(52,199,89,.45);font-size:14px}
+.is-standalone .standalone{display:block}
+
+footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.16em}
+footer a{border-bottom:1px solid var(--faint)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- 使い方：homescreen.html?from=ゲームID（hanemusubi / kazewatari / hoshitsunagi / ototsuzuri）
+     from が無い・不明な場合はギャラリー（トップ）向けの表示になる -->
+<div class="wrap">
+  <div class="topbar">
+    <a class="back js-back" href="./"><span aria-hidden="true">←</span><span class="js-back-label">ギャラリーに戻る</span></a>
+    <span class="mark">空巡り</span>
+  </div>
+
+  <header class="head">
+    <p class="kicker">Add to Home Screen</p>
+    <h1 class="title"><span class="game js-name">空巡り</span>を<br>ホーム画面に追加する</h1>
+    <p class="lead">ホーム画面にアイコンを置くと、アプリのようにワンタップで起動できる。<br>ダウンロードやストアでの購入は不要。</p>
+    <ul class="merits">
+      <li>ワンタップで起動</li>
+      <li>全画面で遊べる</li>
+      <li>無料・登録不要</li>
+    </ul>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="端末の種類">
+    <button class="tab" role="tab" id="tab-ios" aria-controls="panel-ios" data-os="ios">iPhone<small>iOS</small></button>
+    <button class="tab" role="tab" id="tab-android" aria-controls="panel-android" data-os="android">Android</button>
+  </div>
+  <p class="detected js-detected" aria-live="polite"></p>
+
+  <p class="standalone">すでにホーム画面のアイコンから開いている。追加は完了済み。</p>
+
+  <!-- ===================== iPhone ===================== -->
+  <section class="panel" id="panel-ios" role="tabpanel" aria-labelledby="tab-ios">
+    <div class="req">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10" cy="10" r="8"/><path d="M10 6v5M10 13.6v.4" stroke-linecap="round"/></svg>
+      <span><b>Safari</b> で操作する。LINEやXなどアプリ内で開いている場合は、先にSafariで開き直す。</span>
+    </div>
+
+    <ol class="steps">
+      <li class="step"><div>
+        <h3>Safariで<span class="js-name">空巡り</span>のページを開く</h3>
+        <p><a class="js-target" href="./" style="border-bottom:1px solid var(--faint)">こちらのページ</a>をSafariで開く。この説明ページではなく、追加したいページを開いた状態で操作すること。</p>
+      </div></li>
+      <li class="step"><div>
+        <h3><span class="ui"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>その他</span>→<span class="ui"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5v8.5M5 4.5l3-3 3 3"/><path d="M5.5 7H3.5v7.5h9V7h-2"/></svg>共有</span>をタップ</h3>
+        <p>画面右下の「…」をタップし、「共有」を選ぶ。アドレスバーの横に共有ボタンがある場合は、それを直接タップしてもいい。</p>
+      </div></li>
+      <li class="step"><div>
+        <h3><span class="ui">ホーム画面に追加</span>をタップ</h3>
+        <p>見当たらない場合は、メニューを下へスクロールするか「その他」をタップすると出てくる。</p>
+      </div></li>
+      <li class="step"><div>
+        <h3><span class="ui">Webアプリとして開く<i class="toggle" aria-hidden="true"></i></span>を確認して<span class="ui">追加</span></h3>
+        <p>「Webアプリとして開く」がオンになっていることを確認し、右上の「追加」をタップする。ホーム画面にアイコンが追加される。</p>
+      </div></li>
+    </ol>
+
+    <p class="note"><b>iOS 18以前の場合</b><br>画面下の共有ボタン → 「ホーム画面に追加」 → 「追加」 の順にタップする。「Webアプリとして開く」の項目は表示されない。</p>
+  </section>
+
+  <!-- ===================== Android ===================== -->
+  <section class="panel" id="panel-android" role="tabpanel" aria-labelledby="tab-android" hidden>
+    <div class="req">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10" cy="10" r="8"/><path d="M10 6v5M10 13.6v.4" stroke-linecap="round"/></svg>
+      <span><b>Chrome</b> で操作する。LINEやXなどアプリ内で開いている場合は、先にChromeで開き直す。</span>
+    </div>
+
+    <ol class="steps">
+      <li class="step"><div>
+        <h3>Chromeで<span class="js-name">空巡り</span>のページを開く</h3>
+        <p><a class="js-target" href="./" style="border-bottom:1px solid var(--faint)">こちらのページ</a>をChromeで開く。この説明ページではなく、追加したいページを開いた状態で操作すること。</p>
+      </div></li>
+      <li class="step"><div>
+        <h3>右上の<span class="ui"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>メニュー</span>をタップ</h3>
+        <p>アドレスバーの右端にある縦3つの点。</p>
+      </div></li>
+      <li class="step"><div>
+        <h3><span class="ui">ホーム画面に追加</span>をタップ</h3>
+        <p>端末やChromeのバージョンによって「アプリをインストール」「インストール」と表示される場合もある。どちらを選んでも問題ない。</p>
+      </div></li>
+      <li class="step"><div>
+        <h3><span class="ui">インストール</span>または<span class="ui">追加</span>をタップ</h3>
+        <p>確認画面の指示に従ってタップすると、ホーム画面にアイコンが追加される。</p>
+      </div></li>
+    </ol>
+
+    <p class="note"><b>アイコンが見つからない場合</b><br>ホーム画面ではなくアプリ一覧に追加されていることがある。アプリ一覧を確認し、必要ならホーム画面へドラッグする。</p>
+    <p class="note"><b>ページ下部に「インストール」の案内が出た場合</b><br>その案内からそのまま追加してもいい。</p>
+  </section>
+
+  <section class="done">
+    <h2>準備ができたら</h2>
+    <p><span class="js-name">空巡り</span>のページを開いて、上の手順で追加する。</p>
+    <a class="btn js-target" href="./"><span class="js-go">ページを開く</span> <span aria-hidden="true">→</span></a>
+  </section>
+
+  <footer><a href="./">空巡り — Game Exhibition</a></footer>
+</div>
+
+<script>
+/* ============================================================
+   ★ ゲームを追加・変更するときはここだけ ★
+   キー  : ?from= に指定するID
+   name  : 表示名
+   url   : 戻り先＆ホーム画面に追加してほしいページ
+   accent: アクセント色
+   sky   : 背景グラデーション
+   ============================================================ */
+const GAMES = {
+  top: {
+    name: "空巡り", url: "./", accent: "#e9c27c", back: "ギャラリーに戻る",
+    sky: "linear-gradient(180deg,#070a1c 0%,#151b45 42%,#3b2f58 74%,#9a6a63 100%)"
+  },
+  hanemusubi: {
+    name: "羽結び", url: "https://mikookame.github.io/hanemusubi/play", accent: "#ecc57e",
+    sky: "linear-gradient(180deg,#071a20 0%,#11363c 40%,#4e5644 78%,#a77e4c 100%)"
+  },
+  kazewatari: {
+    name: "風渡り", url: "https://mikookame.github.io/kazewatari/", accent: "#cfe0ea",
+    sky: "linear-gradient(180deg,#101a26 0%,#22364a 45%,#47627a 82%,#7a909f 100%)"
+  },
+  hoshitsunagi: {
+    name: "ほしつなぎ", url: "https://mikookame.github.io/hoshitsunagi/", accent: "#c9b6ff",
+    sky: "linear-gradient(180deg,#03040f 0%,#0d0c2c 45%,#1d1642 80%,#352155 100%)"
+  },
+  ototsuzuri: {
+    name: "音綴り", url: "https://mikookame.github.io/ototsuzuri/", accent: "#f3c9a2",
+    sky: "linear-gradient(180deg,#120d1a 0%,#2c1f2c 42%,#553a3c 78%,#97705a 100%)"
+  }
+};
+
+(() => {
+  const $$ = s => [...document.querySelectorAll(s)];
+
+  /* ---- どのゲームから来たか：?from= → リファラ → トップ ---- */
+  const pickGame = () => {
+    const q = new URLSearchParams(location.search).get('from');
+    if (q && GAMES[q]) return q;
+    try {
+      const ref = new URL(document.referrer);
+      const hit = Object.keys(GAMES).find(k => k !== 'top' && ref.pathname.split('/').includes(k));
+      if (hit) return hit;
+    } catch (e) {}
+    return 'top';
+  };
+  const key = pickGame(), g = GAMES[key];
+  const root = document.documentElement.style;
+  root.setProperty('--accent', g.accent);
+  root.setProperty('--sky', g.sky);
+  document.querySelector('meta[name="theme-color"]').content = g.sky.match(/#[0-9a-f]{6}/i)[0];
+  document.title = `${g.name}をホーム画面に追加 — 空巡り`;
+  $$('.js-name').forEach(el => el.textContent = g.name);
+  $$('.js-target, .js-back').forEach(el => el.href = g.url);
+  $$('.js-back-label').forEach(el => el.textContent = g.back || `${g.name}に戻る`);
+  $$('.js-go').forEach(el => el.textContent = `${g.name}を開く`);
+
+  /* ---- 端末判定でタブを初期選択 ---- */
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(ua);
+  const tabs = $$('.tab');
+  const select = os => tabs.forEach(t => {
+    const on = t.dataset.os === os;
+    t.setAttribute('aria-selected', on);
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  tabs.forEach(t => t.addEventListener('click', () => select(t.dataset.os)));
+  document.querySelector('.tabs').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const i = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+    const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    select(n.dataset.os); n.focus();
+  });
+  select(isAndroid ? 'android' : 'ios');
+  document.querySelector('.js-detected').textContent =
+    isIOS ? 'お使いの端末：iPhone / iPad' : isAndroid ? 'お使いの端末：Android' : '';
+
+  /* ---- すでにホーム画面から起動している場合 ---- */
+  if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+    document.documentElement.classList.add('is-standalone');
+  }
+})();
+</script>
+</body>
+</html>
