@@ -67,6 +67,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .steps{list-style:none;counter-reset:s;margin-top:26px}
 .step{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:22px 0;border-top:1px solid var(--faint)}
 .step:last-child{border-bottom:1px solid var(--faint)}
+.step > div{min-width:0}
 .step::before{content:counter(s,decimal-leading-zero);font-family:var(--latin);font-size:34px;line-height:1;color:var(--accent)}
 .step h3{font-family:var(--serif);font-weight:700;font-size:18px;line-height:1.6;letter-spacing:.06em}
 .step p{margin-top:6px;color:var(--muted);font-size:14px;line-height:1.95}
@@ -89,6 +90,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .standalone{display:none;margin-top:26px;padding:16px 18px;border-radius:10px;background:rgba(52,199,89,.12);box-shadow:inset 0 0 0 1px rgba(52,199,89,.45);font-size:14px}
 .is-standalone .standalone{display:block}
 
+.paste-only{display:none}
+.is-paste .paste-only{display:block}
+.is-paste .link-only{display:none}
+.is-paste .done .copy{display:inline-block}
+.urlbox{display:flex;gap:8px;align-items:center;margin-top:12px;padding:6px 6px 6px 14px;border-radius:10px;background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 1px var(--faint)}
+.urlbox code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+.copy{flex:none;padding:8px 14px;border-radius:8px;background:var(--accent);color:#14110c;font-size:13px;font-weight:700;letter-spacing:.08em}
+.done .copy{padding:14px 28px;border-radius:99px;font-size:15px;margin-top:20px;letter-spacing:.12em;transition:transform .5s var(--ease),box-shadow .5s}
+.done .copy:hover{transform:translateY(-3px);box-shadow:0 14px 34px -10px var(--accent)}
 footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.16em}
 footer a{border-bottom:1px solid var(--faint)}
 
@@ -99,7 +109,7 @@ footer a{border-bottom:1px solid var(--faint)}
 <div class="sky" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
-<!-- 使い方：homescreen.html?from=ゲームID（hanemusubi / kazewatari / hoshitsunagi / ototsuzuri）
+<!-- 使い方：homescreen.html?from=ゲームID（hanemusubi / kazewatari / hoshitsunagi / ototsuzuri / nightingale）
      from が無い・不明な場合はギャラリー（トップ）向けの表示になる -->
 <div class="wrap">
   <div class="topbar">
@@ -113,8 +123,8 @@ footer a{border-bottom:1px solid var(--faint)}
     <p class="lead">ホーム画面にアイコンを置くと、アプリのようにワンタップで起動できる。<br>ダウンロードやストアでの購入は不要。</p>
     <ul class="merits">
       <li>ワンタップで起動</li>
-      <li>全画面で遊べる</li>
-      <li>無料・登録不要</li>
+      <li class="link-only">全画面で遊べる</li>
+      <li class="link-only">無料・登録不要</li>
     </ul>
   </header>
 
@@ -136,7 +146,10 @@ footer a{border-bottom:1px solid var(--faint)}
     <ol class="steps">
       <li class="step"><div>
         <h3>Safariで<span class="js-name">空巡り</span>のページを開く</h3>
-        <p><a class="js-target" href="./" style="border-bottom:1px solid var(--faint)">こちらのページ</a>をSafariで開く。この説明ページではなく、追加したいページを開いた状態で操作すること。</p>
+        <p class="link-only"><a class="js-target" href="./" style="border-bottom:1px solid var(--faint)">こちらのページ</a>をSafariで開く。この説明ページではなく、追加したいページを開いた状態で操作すること。</p>
+        <p class="paste-only">URLをコピーし、Safariのアドレス欄に<b>貼り付けて</b>開く。リンクをタップして開くとClaudeアプリが起動してしまうことがあるため、必ず貼り付けで開くこと。</p>
+        <div class="paste-only"><div class="urlbox"><code class="js-url"></code><button class="copy js-copy" type="button">URLをコピー</button></div></div>
+        <p class="paste-only">画面上部に出る「Claudeアプリで開く」の案内は押さずにそのまま進む。</p>
       </div></li>
       <li class="step"><div>
         <h3><span class="ui"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>その他</span>→<span class="ui"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5v8.5M5 4.5l3-3 3 3"/><path d="M5.5 7H3.5v7.5h9V7h-2"/></svg>共有</span>をタップ</h3>
@@ -152,6 +165,7 @@ footer a{border-bottom:1px solid var(--faint)}
       </div></li>
     </ol>
 
+    <p class="note paste-only"><b>ログインを求められた場合</b><br>このゲームはClaudeと接続して動く。ホーム画面のアイコンから初めて開いたときにログインを求められたら、Claudeのアカウントでログインする。</p>
     <p class="note"><b>iOS 18以前の場合</b><br>画面下の共有ボタン → 「ホーム画面に追加」 → 「追加」 の順にタップする。「Webアプリとして開く」の項目は表示されない。</p>
   </section>
 
@@ -165,7 +179,10 @@ footer a{border-bottom:1px solid var(--faint)}
     <ol class="steps">
       <li class="step"><div>
         <h3>Chromeで<span class="js-name">空巡り</span>のページを開く</h3>
-        <p><a class="js-target" href="./" style="border-bottom:1px solid var(--faint)">こちらのページ</a>をChromeで開く。この説明ページではなく、追加したいページを開いた状態で操作すること。</p>
+        <p class="link-only"><a class="js-target" href="./" style="border-bottom:1px solid var(--faint)">こちらのページ</a>をChromeで開く。この説明ページではなく、追加したいページを開いた状態で操作すること。</p>
+        <p class="paste-only">URLをコピーし、Chromeのアドレス欄に<b>貼り付けて</b>開く。リンクをタップして開くとClaudeアプリが起動してしまうことがあるため、必ず貼り付けで開くこと。</p>
+        <div class="paste-only"><div class="urlbox"><code class="js-url"></code><button class="copy js-copy" type="button">URLをコピー</button></div></div>
+        <p class="paste-only">画面上部に出る「Claudeアプリで開く」の案内は押さずにそのまま進む。</p>
       </div></li>
       <li class="step"><div>
         <h3>右上の<span class="ui"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>メニュー</span>をタップ</h3>
@@ -181,14 +198,17 @@ footer a{border-bottom:1px solid var(--faint)}
       </div></li>
     </ol>
 
+    <p class="note paste-only"><b>ログインを求められた場合</b><br>このゲームはClaudeと接続して動く。ログインを求められたら、Claudeのアカウントでログインする。</p>
     <p class="note"><b>アイコンが見つからない場合</b><br>ホーム画面ではなくアプリ一覧に追加されていることがある。アプリ一覧を確認し、必要ならホーム画面へドラッグする。</p>
     <p class="note"><b>ページ下部に「インストール」の案内が出た場合</b><br>その案内からそのまま追加してもいい。</p>
   </section>
 
   <section class="done">
     <h2>準備ができたら</h2>
-    <p><span class="js-name">空巡り</span>のページを開いて、上の手順で追加する。</p>
-    <a class="btn js-target" href="./"><span class="js-go">ページを開く</span> <span aria-hidden="true">→</span></a>
+    <p class="link-only"><span class="js-name">空巡り</span>のページを開いて、上の手順で追加する。</p>
+    <p class="paste-only">URLをコピーしてブラウザのアドレス欄に貼り付け、上の手順で追加する。</p>
+    <a class="btn js-target link-only" href="./"><span class="js-go">ページを開く</span> <span aria-hidden="true">→</span></a>
+    <button class="copy js-copy paste-only" type="button">URLをコピー</button>
   </section>
 
   <footer><a href="./">空巡り — Game Exhibition</a></footer>
@@ -202,6 +222,7 @@ footer a{border-bottom:1px solid var(--faint)}
    url   : 戻り先＆ホーム画面に追加してほしいページ
    accent: アクセント色
    sky   : 背景グラデーション
+   paste : true でURLコピー方式の案内に切り替える（Claude Artifact 用）
    ============================================================ */
 const GAMES = {
   top: {
@@ -219,6 +240,12 @@ const GAMES = {
   hoshitsunagi: {
     name: "ほしつなぎ", url: "https://mikookame.github.io/hoshitsunagi/", accent: "#c9b6ff",
     sky: "linear-gradient(180deg,#03040f 0%,#0d0c2c 45%,#1d1642 80%,#352155 100%)"
+  },
+  nightingale: {
+    // Claude Artifact で公開する作品。paste: true にすると、リンクではなく
+    // 「URLをコピー → アドレス欄に貼り付け」で案内する（タップで開くとClaudeアプリに飛ばされるため）
+    name: "Nightingale Chess", url: "https://claude.ai/artifact/Hv6GAJERY3q1vB43N6Cmj2", accent: "#e8c48a", paste: true,
+    sky: "linear-gradient(180deg,#0e0b09 0%,#241b14 45%,#3d2f22 80%,#5c4630 100%)"
   },
   ototsuzuri: {
     name: "音綴り", url: "https://mikookame.github.io/ototsuzuri/", accent: "#f3c9a2",
@@ -250,6 +277,31 @@ const GAMES = {
   $$('.js-target, .js-back').forEach(el => el.href = g.url);
   $$('.js-back-label').forEach(el => el.textContent = g.back || `${g.name}に戻る`);
   $$('.js-go').forEach(el => el.textContent = `${g.name}を開く`);
+
+  /* ---- Claude Artifact：リンクではなくURLコピーで案内 ---- */
+  if (g.paste) {
+    document.documentElement.classList.add('is-paste');
+    $$('.js-url').forEach(el => el.textContent = g.url);
+    // 戻るボタンもリンクで飛ぶとアプリに取られるので、履歴があれば履歴で戻る。無ければギャラリーへ
+    if (history.length > 1) {
+      $$('.js-back').forEach(el => el.addEventListener('click', e => { e.preventDefault(); history.back(); }));
+    } else {
+      $$('.js-back').forEach(el => el.href = './');
+      $$('.js-back-label').forEach(el => el.textContent = 'ギャラリーへ');
+    }
+    const copy = async btn => {
+      let ok = false;
+      try { await navigator.clipboard.writeText(g.url); ok = true; } catch (e) {
+        const t = document.createElement('textarea'); t.value = g.url; t.setAttribute('readonly', '');
+        t.style.cssText = 'position:fixed;opacity:0'; document.body.append(t); t.select();
+        try { ok = document.execCommand('copy'); } catch (e2) {} t.remove();
+      }
+      const label = btn.textContent;
+      btn.textContent = ok ? 'コピーしました' : 'コピーできませんでした';
+      setTimeout(() => btn.textContent = label, 1800);
+    };
+    $$('.js-copy').forEach(b => b.addEventListener('click', () => copy(b)));
+  }
 
   /* ---- 端末判定でタブを初期選択 ---- */
   const ua = navigator.userAgent;
