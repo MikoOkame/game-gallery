@@ -99,6 +99,24 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .copy{flex:none;padding:8px 14px;border-radius:8px;background:var(--accent);color:#14110c;font-size:13px;font-weight:700;letter-spacing:.08em}
 .done .copy{padding:14px 28px;border-radius:99px;font-size:15px;margin-top:20px;letter-spacing:.12em;transition:transform .5s var(--ease),box-shadow .5s}
 .done .copy:hover{transform:translateY(-3px);box-shadow:0 14px 34px -10px var(--accent)}
+/* ---------- bonus icons ---------- */
+.bonus{margin-top:56px;text-align:center}
+.bonus[hidden]{display:none}
+.bonus .kicker{font-size:14px}
+.bonus h2{font-family:var(--serif);font-weight:700;font-size:20px;letter-spacing:.14em;margin-top:4px}
+.bonus h2::before,.bonus h2::after{content:"";display:inline-block;width:28px;height:1px;background:var(--accent);opacity:.6;vertical-align:middle;margin:0 14px}
+.bonus .sub{margin-top:6px;font-size:13px;color:var(--muted)}
+.icons{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 18px;margin-top:30px;list-style:none}
+.icons a{display:block;transition:transform .5s var(--ease)}
+.icons a:hover{transform:translateY(-4px)}
+.icons .tile{display:block;position:relative;aspect-ratio:1;border-radius:22.5%;overflow:hidden;background:var(--bg);
+  box-shadow:0 0 0 1px rgba(232,196,138,.35),0 0 0 5px rgba(255,255,255,.03),0 18px 34px -16px rgba(0,0,0,.8);transition:box-shadow .5s}
+.icons a:hover .tile{box-shadow:0 0 0 1px var(--accent),0 0 0 5px rgba(255,255,255,.05),0 22px 40px -16px var(--accent)}
+.icons img{display:block;width:100%;height:100%;object-fit:cover}
+.icons b{display:block;margin-top:10px;font-family:var(--serif);font-weight:700;font-size:clamp(11.5px,3.6vw,14px);letter-spacing:.04em;white-space:nowrap}
+.icons i{display:block;font-family:var(--latin);font-size:13px;letter-spacing:.12em;color:var(--muted);line-height:1.4}
+@media (max-width:380px){.icons{gap:22px 12px}}
+
 footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);letter-spacing:.16em}
 footer a{border-bottom:1px solid var(--faint)}
 
@@ -211,6 +229,13 @@ footer a{border-bottom:1px solid var(--faint)}
     <button class="copy js-copy paste-only" type="button">URLをコピー</button>
   </section>
 
+  <section class="bonus" hidden aria-labelledby="bonus-title">
+    <p class="kicker">Character Icons</p>
+    <h2 id="bonus-title">おまけ</h2>
+    <p class="sub">登場キャラクターのアイコン。<br>タップで画像を保存できる。</p>
+    <ul class="icons js-icons"></ul>
+  </section>
+
   <footer><a href="./">空巡り — Game Exhibition</a></footer>
 </div>
 
@@ -223,6 +248,7 @@ footer a{border-bottom:1px solid var(--faint)}
    accent: アクセント色
    sky   : 背景グラデーション
    paste : true でURLコピー方式の案内に切り替える（Claude Artifact 用）
+   icons : おまけアイコン一覧（任意）
    ============================================================ */
 const GAMES = {
   top: {
@@ -245,7 +271,16 @@ const GAMES = {
     // Claude Artifact で公開する作品。paste: true にすると、リンクではなく
     // 「URLをコピー → アドレス欄に貼り付け」で案内する（タップで開くとClaudeアプリに飛ばされるため）
     name: "Nightingale Chess", url: "https://claude.ai/artifact/Hv6GAJERY3q1vB43N6Cmj2", accent: "#e8c48a", paste: true,
-    sky: "linear-gradient(180deg,#0e0b09 0%,#241b14 45%,#3d2f22 80%,#5c4630 100%)"
+    sky: "linear-gradient(180deg,#0e0b09 0%,#241b14 45%,#3d2f22 80%,#5c4630 100%)",
+    // おまけアイコン（並び順のまま表示）。bg はタイルの背景色
+    icons: [
+      { src: "icons/nightingale-chess/nightingale.png", name: "ナイチンゲール", en: "Nightingale", bg: "#efe0d0" },
+      { src: "icons/nightingale-chess/altair.png",      name: "アルタイル",     en: "Altair",      bg: "#d3dcef" },
+      { src: "icons/nightingale-chess/rubato.png",      name: "ルバート",       en: "Rubato",      bg: "#f1e4ec" },
+      { src: "icons/nightingale-chess/fermata.png",     name: "フェルマータ",   en: "Fermata",     bg: "#dbe3d0" },
+      { src: "icons/nightingale-chess/minerva.png",     name: "ミネルヴァ",     en: "Minerva",     bg: "#e2dbef" },
+      { src: "icons/nightingale-chess/strut.png",       name: "ストラット",     en: "Strut",       bg: "#efe5d3" }
+    ]
   },
   ototsuzuri: {
     name: "音綴り", url: "https://mikookame.github.io/ototsuzuri/", accent: "#f3c9a2",
@@ -277,6 +312,24 @@ const GAMES = {
   $$('.js-target, .js-back').forEach(el => el.href = g.url);
   $$('.js-back-label').forEach(el => el.textContent = g.back || `${g.name}に戻る`);
   $$('.js-go').forEach(el => el.textContent = `${g.name}を開く`);
+
+  /* ---- おまけアイコン ---- */
+  if (g.icons && g.icons.length) {
+    const ul = document.querySelector('.js-icons');
+    g.icons.forEach(ic => {
+      const li = document.createElement('li');
+      const file = ic.src.split('/').pop();
+      li.innerHTML = `<a download="${file}"><span class="tile"><img loading="lazy" alt=""></span><b></b><i></i></a>`;
+      const a = li.querySelector('a');
+      a.href = ic.src; a.setAttribute('aria-label', `${ic.name}のアイコンを保存`);
+      li.querySelector('.tile').style.setProperty('--bg', ic.bg || '#eee');
+      li.querySelector('img').src = ic.src;
+      li.querySelector('b').textContent = ic.name;
+      li.querySelector('i').textContent = ic.en;
+      ul.append(li);
+    });
+    document.querySelector('.bonus').hidden = false;
+  }
 
   /* ---- Claude Artifact：リンクではなくURLコピーで案内 ---- */
   if (g.paste) {
