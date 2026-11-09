@@ -113,6 +113,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @media (max-width:1024px){
   .exhibit,.exhibit:nth-of-type(even){grid-template-columns:1fr;min-height:auto;padding-top:110px;padding-bottom:110px}
   .exhibit:nth-of-type(even) .ex-stage{order:0}
+  /* 1カラム時はタイトル → スクショ → 説明の順に並べる */
+  .exhibit,.exhibit:nth-of-type(even){row-gap:0}
+  .ex-text{display:contents}
+  .ex-head{order:-1}
+  .ex-stage{margin:clamp(28px,6vw,40px) 0 4px}
 }
 
 /* screenshot stage：メイン1枚＋サムネ */
