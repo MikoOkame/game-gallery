@@ -159,8 +159,6 @@ footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- svg art motion ---------- */
-.ripple{transform-box:fill-box;transform-origin:center;animation:ripple 3.6s var(--ease) infinite}
-.ripple:nth-of-type(2){animation-delay:1.2s}.ripple:nth-of-type(3){animation-delay:2.4s}
 @keyframes ripple{0%{transform:scale(.4);opacity:.9}100%{transform:scale(3.4);opacity:0}}
 .flap{transform-box:fill-box;transform-origin:center;animation:flap .8s ease-in-out infinite alternate}
 @keyframes flap{to{transform:scaleY(.3)}}
@@ -259,9 +257,9 @@ footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2
         <path d="M0 430 Q70 395 140 420 T270 405 T400 420 V500 H0Z" fill="#20393a" opacity=".85"/>
         <path d="M0 460 Q90 440 190 458 T400 450 V500 H0Z" fill="#132628"/>
         <g fill="none" stroke="#ffe7b0" stroke-width="1.4">
-          <circle class="ripple" cx="200" cy="240" r="34" vector-effect="non-scaling-stroke"/>
-          <circle class="ripple" cx="200" cy="240" r="34" vector-effect="non-scaling-stroke"/>
-          <circle class="ripple" cx="200" cy="240" r="34" vector-effect="non-scaling-stroke"/>
+          <circle cx="200" cy="240" r="13.6" opacity="0"><animate attributeName="r" values="13.6;115.6" dur="3.6s" begin="0s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".22 .8 .2 1"/><animate attributeName="opacity" values=".9;0" dur="3.6s" begin="0s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".22 .8 .2 1"/></circle>
+          <circle cx="200" cy="240" r="13.6" opacity="0"><animate attributeName="r" values="13.6;115.6" dur="3.6s" begin="1.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".22 .8 .2 1"/><animate attributeName="opacity" values=".9;0" dur="3.6s" begin="1.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".22 .8 .2 1"/></circle>
+          <circle cx="200" cy="240" r="13.6" opacity="0"><animate attributeName="r" values="13.6;115.6" dur="3.6s" begin="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".22 .8 .2 1"/><animate attributeName="opacity" values=".9;0" dur="3.6s" begin="2.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines=".22 .8 .2 1"/></circle>
         </g>
         <g fill="#ffe7b0"><circle class="note" cx="222" cy="222" r="2.6"/><circle class="note" cx="214" cy="218" r="2"/><circle class="note" cx="230" cy="230" r="1.8"/></g>
         <g fill="none" stroke-linecap="round" stroke-linejoin="round">
