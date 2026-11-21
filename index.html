@@ -175,6 +175,28 @@ footer .a2hs a:hover{color:var(--accent)}
 footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2em}
 
 
+/* ---------- BGM（オルゴールのワルツ）。置き場所の案：?bgmui=top（既定）／float／hero ---------- */
+.bgm-btn{appearance:none;background:none;border:0;color:var(--muted);font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  -webkit-tap-highlight-color:transparent;transition:color .4s var(--ease),border-color .4s var(--ease)}
+.bgm-btn[hidden]{display:none}
+.bgm-btn:hover,.bgm-btn[aria-pressed="true"]{color:var(--accent)}
+.bgm-ico{display:inline-flex;align-items:flex-end;gap:2px;height:12px}
+.bgm-ico i{display:block;width:2px;height:3px;border-radius:1px;background:currentColor;transition:height .5s var(--ease)}
+.bgm-btn[aria-pressed="true"] .bgm-ico i{animation:bgmbar 1.666s ease-in-out infinite}   /* 1小節（72BPM の3拍）で1周 */
+.bgm-btn[aria-pressed="true"] .bgm-ico i:nth-child(2){animation-delay:-.555s}
+.bgm-btn[aria-pressed="true"] .bgm-ico i:nth-child(3){animation-delay:-1.11s}
+@keyframes bgmbar{0%,100%{height:3px}30%{height:12px}60%{height:6px}}
+.topbar .tb-right{display:flex;align-items:center;gap:clamp(14px,2.4vw,28px)}
+.bgm-top{font-style:italic;letter-spacing:.18em;padding:12px 0;margin:-12px 0;pointer-events:auto}   /* 押せる範囲を上下に広げても、上の帯の高さは変えない */
+.bgm-float{position:fixed;right:calc(clamp(16px,2.4vw,32px) + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));z-index:30;
+  width:46px;height:46px;justify-content:center;border-radius:50%;border:1px solid var(--faint);background:rgba(10,12,28,.55);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.bgm-float[aria-pressed="true"]{border-color:var(--accent)}
+.bgm-float .bgm-ico{height:14px;gap:3px}
+.bgm-hero{margin-top:26px;font-family:var(--serif);font-size:15px;letter-spacing:.2em;padding:6px 0;border-bottom:1px solid var(--faint);justify-self:start;
+  opacity:0;animation:fade 1.4s 1.2s var(--ease) forwards}
+@media (prefers-reduced-motion:reduce){.bgm-hero{opacity:1}}
+
 .toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);z-index:50;padding:12px 22px;border-radius:99px;background:rgba(10,12,28,.9);border:1px solid var(--faint);font-size:14px;opacity:0;pointer-events:none;transition:all .5s var(--ease);white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
@@ -234,8 +256,12 @@ footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2
 
 <div class="topbar">
   <a class="mark" href="#top">空巡り</a>
-  <span class="count">Exhibits — 05</span>
+  <span class="tb-right">
+    <span class="count">Exhibits — 05</span>
+    <button class="bgm-btn bgm-top" type="button" aria-pressed="false" aria-label="BGM（オルゴールのワルツ）を鳴らす" hidden><span class="bgm-ico" aria-hidden="true"><i></i><i></i><i></i></span>Music</button>
+  </span>
 </div>
+<button class="bgm-btn bgm-float" type="button" aria-pressed="false" aria-label="BGM（オルゴールのワルツ）を鳴らす" hidden><span class="bgm-ico" aria-hidden="true"><i></i><i></i><i></i></span></button>
 <nav class="rail" aria-label="展示ナビゲーション">
   <a href="#top" data-for="hero" aria-label="入口"></a>
   <a href="#hanemusubi" data-for="hane" aria-label="羽結び"></a>
@@ -250,6 +276,7 @@ footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2
   <p class="hero-kicker">丘芽ゲーム工房 作品一覧</p>
   <h1 class="hero-title" aria-label="空巡り"><span style="--i:0">空</span><span style="--i:1">巡</span><span style="--i:2">り</span></h1>
   <p class="hero-sub">風と、歌と、星をめぐる<br>五つの小さな旅。</p>
+  <button class="bgm-btn bgm-hero" type="button" aria-pressed="false" hidden><span class="bgm-ico" aria-hidden="true"><i></i><i></i><i></i></span><span class="bgm-label">オルゴールを鳴らす</span></button>
   <nav class="hero-index" aria-label="作品一覧">
     <a href="#hanemusubi"><i>01</i><b>羽結び</b><em>Hanemusubi</em></a>
     <a href="#kazewatari"><i>02</i><b>風渡り</b><em>Kazewatari</em></a>
@@ -1018,6 +1045,29 @@ const SITE = {
     const g = SITE.games[btn.closest('[data-game]').dataset.game];
     if (!g.play || g.play.includes('YOUR_GITHUB_NAME')) { e.preventDefault(); say('URLが未設定です（SITE.games を編集）'); }
   }));
+})();
+</script>
+<script src="bgm/song.js"></script>
+<script src="bgm/player.js"></script>
+<script>
+/* ---- BGM のボタン。押したときだけ鳴る（自動では鳴らさない） ---- */
+(() => {
+  if (!self.BGM || !(window.AudioContext || window.webkitAudioContext)) return;
+  const ui = new URLSearchParams(location.search).get('bgmui') || 'top';   // 置き場所の比較用：top／float／hero
+  const top = document.querySelector('.bgm-top'), float = document.querySelector('.bgm-float'), hero = document.querySelector('.bgm-hero');
+  const shown = ui === 'float' ? [float] : ui === 'hero' ? [hero, top] : [top];
+  shown.forEach(b => b.addEventListener('click', () => BGM.toggle()));
+  const sync = on => {
+    shown.forEach(b => {
+      b.setAttribute('aria-pressed', on);
+      if (b !== hero) b.setAttribute('aria-label', on ? 'BGM を止める' : 'BGM（オルゴールのワルツ）を鳴らす');
+    });
+    if (ui === 'hero') { hero.querySelector('.bgm-label').textContent = on ? 'オルゴールを止める' : 'オルゴールを鳴らす'; top.hidden = !started; }
+  };
+  let started = false;   // hero：一度鳴らしたら、スクロールした先でも止められるよう上にも出す
+  BGM.onChange(on => { if (on) started = true; sync(on); });
+  shown.forEach(b => { b.hidden = false; });
+  if (ui === 'hero') top.hidden = true;
 })();
 </script>
 </body>
