@@ -123,7 +123,7 @@ const TALK = {
     choices: [["ほかにどんな鳥がいるの？", "birds"], ["どんな歌を歌うの？", "songs"], ["ほかの話をする", "root"]] },
   birds: { say: "孔雀のルバートは、自分が店の主役だと思ってる。ハシビロコウのフェルマータは、店の奥でじっと立ってるよ。フクロウのミネルヴァは、ぼくのチェスの先生なんだ。", choices: [["ほかの話をする", "root"]] },
   songs: { say: "夜に合う、ゆっくりした歌。ジャズなら、バラードがいちばん好きだよ。", choices: [["ほかの話をする", "root"]] },
-  bye: { say: "うん、またね！ 夜になったら、店で待ってるよ。", choices: [["もう少し話す", "root"]] },
+  bye: { say: "うん、またね！ 夜になったら、店で待ってるよ。", choices: [] }, // the chat ends here; only the gallery link is left
 };
 // a topic once heard leaves the choices; a topic with all its follow-ups heard leaves the list (N, 2026-11-21)
 const heard = new Set();
