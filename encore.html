@@ -132,15 +132,20 @@ const open = key => {
   const node = TALK[key], subs = node.choices.map(c => c[1]).filter(k => k !== "root");
   return subs.length ? subs.some(open) : !heard.has(key);
 };
+// after a follow-up answer, the other follow-ups of the same topic stay on offer (N, 2026-11-21)
+let topic = null;
 function chatGo(key, label) {
   const log = $("log"), node = TALK[key];
+  const leaf = node.choices.every(c => c[1] === "root");
+  if (!leaf) topic = key === "root" || key === "bye" ? null : key;
   if (label) { const me = document.createElement("p"); me.className = "me"; me.textContent = label; log.append(me); }
   const again = heard.has(key) && key !== "root" && key !== "bye";
   const say = again ? "うん、なあに？" : node.say;
   if (say) { const b = document.createElement("p"); b.className = "bubble reveal"; b.textContent = say; log.append(b); }
   heard.add(key);
   const box = $("choices"); box.textContent = "";
-  for (const [text, next] of node.choices.filter(c => open(c[1]))) {
+  const offer = leaf && topic ? TALK[topic].choices : node.choices;
+  for (const [text, next] of offer.filter(c => open(c[1]))) {
     const btn = document.createElement("button"); btn.type = "button"; btn.textContent = text;
     btn.addEventListener("click", () => chatGo(next, next === "root" ? null : text)); // "back to topics" is not said aloud
     box.append(btn);
