@@ -45,7 +45,8 @@ h1 { text-align: center; font-family: var(--serif); font-weight: 800; font-size:
 .how { color: var(--muted); font-size: 14px; }
 .tips { display: grid; gap: 8px; padding-left: 1.2em; font-size: 15px; }
 .tips li::marker { color: var(--gold); }
-.again { justify-self: center; font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; border-bottom: 1px solid var(--line); cursor: pointer; padding: 2px 0; }
+.again { justify-self: center; font-size: 14px; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); padding: 2px 0; }
+.again:hover, .again:focus-visible { color: var(--gold); outline: none; }
 .foot { text-align: center; color: #6e6352; font-size: 12px; letter-spacing: .08em; margin-top: 10px; }
 @media (prefers-reduced-motion: no-preference) { .reveal { animation: up .5s ease both; } @keyframes up { from { opacity: 0; transform: translateY(8px); } } }
 </style>
@@ -85,15 +86,14 @@ h1 { text-align: center; font-family: var(--serif); font-weight: 800; font-size:
     </ul>
   </section>
 
-  <button type="button" class="again" id="again" hidden>はじめから</button>
+  <a class="again" href="index.html#nightingale-chess">ギャラリーに戻る</a>
   <p class="foot">© 2026 丘芽美湖 (Miko Okame)</p>
 </main>
 <script>
 const $ = id => document.getElementById(id);
 const show = (ids, on) => ids.forEach(id => { $(id).hidden = !on; });
-$("yes").addEventListener("click", () => { show(["answers"], false); show(["won", "word", "how", "again"], true); });
-$("no").addEventListener("click", () => { show(["answers"], false); show(["notyet", "again"], true); });
-$("again").addEventListener("click", () => { show(["won", "word", "how", "notyet", "again"], false); show(["answers"], true); $("copy").textContent = "コピー"; });
+$("yes").addEventListener("click", () => { show(["answers"], false); show(["won", "word", "how"], true); });
+$("no").addEventListener("click", () => { show(["answers"], false); show(["notyet"], true); });
 $("copy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText("CHECKMATE"); $("copy").textContent = "コピーしました"; }
   catch (e) { const r = document.createRange(); r.selectNodeContents($("pw")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copy").textContent = "選択しました"; }
