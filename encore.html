@@ -47,6 +47,14 @@ h1 { text-align: center; font-family: var(--serif); font-weight: 800; font-size:
 .tips li::marker { color: var(--gold); }
 .again { justify-self: center; font-size: 14px; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); padding: 2px 0; }
 .again:hover, .again:focus-visible { color: var(--gold); outline: none; }
+.log { display: grid; gap: 12px; }
+.me { justify-self: end; max-width: 85%; background: #2d2638; border-radius: 14px 14px 4px 14px; padding: 8px 14px; font-size: 15px; }
+.log .bubble::before { display: none; }
+.log .bubble { border-radius: 14px 14px 14px 4px; }
+.choices { display: grid; gap: 8px; margin-top: 14px; }
+.choices button { font: inherit; font-size: 15px; text-align: left; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+.choices button:hover, .choices button:focus-visible { border-color: var(--gold); outline: none; color: #ecd9b0; }
+.choices button::before { content: "› "; color: var(--gold); }
 .foot { text-align: center; color: #6e6352; font-size: 12px; letter-spacing: .08em; margin-top: 10px; }
 @media (prefers-reduced-motion: no-preference) { .reveal { animation: up .5s ease both; } @keyframes up { from { opacity: 0; transform: translateY(8px); } } }
 </style>
@@ -86,14 +94,50 @@ h1 { text-align: center; font-family: var(--serif); font-weight: 800; font-size:
     </ul>
   </section>
 
+  <section id="chat" hidden aria-live="polite">
+    <div id="log" class="log"></div>
+    <div class="choices" id="choices"></div>
+  </section>
+
   <a class="again" href="index.html#nightingale-chess">ギャラリーに戻る</a>
   <p class="foot">© 2026 丘芽美湖 (Miko Okame)</p>
 </main>
 <script>
 const $ = id => document.getElementById(id);
 const show = (ids, on) => ids.forEach(id => { $(id).hidden = !on; });
-$("yes").addEventListener("click", () => { show(["answers"], false); show(["won", "word", "how"], true); });
-$("no").addEventListener("click", () => { show(["answers"], false); show(["notyet"], true); });
+$("yes").addEventListener("click", () => { show(["answers"], false); show(["won", "word", "how"], true); startChat(); });
+$("no").addEventListener("click", () => { show(["answers"], false); show(["notyet"], true); startChat(); });
+
+// A little chat with Nightingale: fixed lines, branching on the choices (N, 2026-11-21). Her settings: CHARACTERS.md.
+const TALK = {
+  root: { choices: [["アルタイルってどんな鳥？", "altair"], ["ナイチンゲールは何が好き？", "likes"], ["この店のことを教えて", "club"], ["またね", "bye"]] },
+  altair: { say: "閉店後にだけ来る、店でいちばん強いお客さんだよ。ぼくは何度も指してもらってるけど、まだ一度も勝てたことがないんだ。",
+    choices: [["怖くない？", "scary"], ["どうして王冠をかぶってるの？", "crown"], ["ほかの話をする", "root"]] },
+  scary: { say: "ちょっとだけ。でもね、頼むと断らずに最後まで指してくれるんだ。そっけないけど、意地悪な鳥じゃないよ。", choices: [["ほかの話をする", "root"]] },
+  crown: { say: "それがね、誰も知らないんだ。聞いても教えてくれないの。いつかぼくが本気を出させられたら、教えてくれるかな。", choices: [["ほかの話をする", "root"]] },
+  likes: { say: "ぼくはポーンがいちばん好き。小さいけど、一歩ずつ進んで、最後には何にだってなれるから。",
+    choices: [["好きな食べ物は？", "food"], ["苦手なものは？", "dislike"], ["ほかの話をする", "root"]] },
+  food: { say: "ベリーと青虫！ 甘いのと、ぷりっとしたの。どっちもごちそうなんだ。", choices: [["ほかの話をする", "root"]] },
+  dislike: { say: "大きな音と、急かされること。チェスもね、ゆっくり考えたいんだ。だから、あなたもゆっくりでいいよ。", choices: [["ほかの話をする", "root"]] },
+  club: { say: "ここは古いジャズクラブだよ。奥にステージがあって、夜はぼくもそこで歌ってるんだ。",
+    choices: [["ほかにどんな鳥がいるの？", "birds"], ["どんな歌を歌うの？", "songs"], ["ほかの話をする", "root"]] },
+  birds: { say: "孔雀のルバートは、自分が店の主役だと思ってる。ハシビロコウのフェルマータは、店の奥でじっと立ってるよ。フクロウのミネルヴァは、ぼくのチェスの先生なんだ。", choices: [["ほかの話をする", "root"]] },
+  songs: { say: "夜に合う、ゆっくりした歌。ジャズなら、バラードがいちばん好きだよ。", choices: [["ほかの話をする", "root"]] },
+  bye: { say: "うん、またね！ 夜になったら、店で待ってるよ。", choices: [["もう少し話す", "root"]] },
+};
+function chatGo(key, label) {
+  const log = $("log"), node = TALK[key];
+  if (label) { const me = document.createElement("p"); me.className = "me"; me.textContent = label; log.append(me); }
+  if (node.say) { const b = document.createElement("p"); b.className = "bubble reveal"; b.textContent = node.say; log.append(b); }
+  const box = $("choices"); box.textContent = "";
+  for (const [text, next] of node.choices) {
+    const btn = document.createElement("button"); btn.type = "button"; btn.textContent = text;
+    btn.addEventListener("click", () => chatGo(next, next === "root" ? null : text)); // "back to topics" is not said aloud
+    box.append(btn);
+  }
+  if (label) box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+function startChat() { $("chat").hidden = false; chatGo("root"); }
 $("copy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText("CHECKMATE"); $("copy").textContent = "コピーしました"; }
   catch (e) { const r = document.createRange(); r.selectNodeContents($("pw")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copy").textContent = "選択しました"; }
