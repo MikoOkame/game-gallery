@@ -22,9 +22,9 @@
   const beatSec = 60/SONG.bpm, barSec = beatSec*SONG.beatsPerBar;
   const LOOP = barSec*SONG.bars;
   const events = [];
-  for (const part of ['bass', 'acc', 'melody'])
-    for (const [bar, beat, name, len, vel] of SONG[part] || [])
-      events.push({ t:(bar - 1)*barSec + (beat - 1)*beatSec, midi:midiOf(name), dur:len*beatSec, vel, part });
+  for (const part of ['bass', 'acc', 'melody', 'bird'])
+    for (const [bar, beat, name, len, vel, who] of SONG[part] || [])
+      events.push({ t:(bar - 1)*barSec + (beat - 1)*beatSec, midi:midiOf(name), dur:len*beatSec, vel, part, who });
   events.sort((a, b) => a.t - b.t);
 
   /* ---- 音の経路 ---- */
@@ -57,10 +57,11 @@
     const makeup = ctx.createGain(); makeup.gain.value = 1.15;
     G.master.connect(comp); comp.connect(makeup); makeup.connect(ctx.destination);
     const conv = ctx.createConvolver(); conv.buffer = roomImpulse(ctx, 2.8, 2.6);
-    const wet = ctx.createGain(); wet.gain.value = .22;
+    const wet = ctx.createGain(); wet.gain.value = .28;   // 音綴り（.22）より少し多く響かせる（穏やかに）
     conv.connect(wet); wet.connect(G.master);
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 300; hp.Q.value = .7; hp.connect(conv);
-    G.send = ctx.createGain(); G.send.gain.value = .5; G.send.connect(hp);   // 送り量は全部 0.5 なので1個を共有
+    G.send = ctx.createGain(); G.send.gain.value = .5; G.send.connect(hp);   // オルゴールの送り（0.5）。送りの Gain は共有してよい
+    G.birdSend = ctx.createGain(); G.birdSend.gain.value = .6; G.birdSend.connect(hp);   // 鳥の声の送り（音綴りと同じ 0.6）
     const n = Math.round(ctx.sampleRate*.06), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < n; i++) d[i] = Math.random()*2 - 1;
     G.noise = b;
@@ -69,13 +70,14 @@
 
   /* ---- オルゴールの1音 ----
      基音＋2倍（-24dB）・3倍（-16dB）＋弾いた瞬間の 6.27 倍＋ピンの雑音。ファ6（1400Hz）より上は高さに反比例して弱める。
-     低音のパートだけ 2倍・3倍を強める（iPhone のスピーカーや電車の中でも低音の高さが分かるように） */
+     低音のパートだけ 2倍・3倍を強める（iPhone のスピーカーや電車の中でも低音の高さが分かるように）。
+     音綴りより穏やかに：立ち上がり 12 → 18ms、ピンの雑音を半分、余韻の上限 2 → 2.6 秒 */
   const HI_HZ = 1400;
   const OVERTONE = { bass:[.35, .2], acc:[.063, .158], melody:[.063, .158] };
   function musicbox(G, t, midi, dur, vel, part) {
     const ctx = G.ctx, freq = midiToFreq(midi);
     const hi = freq > HI_HZ ? HI_HZ/freq : 1;
-    const peak = clamp(vel/127, .05, 1)*.5*hi, attack = .012, release = Math.min(dur*2.4 + .3, 2);
+    const peak = clamp(vel/127, .05, 1)*.5*hi, attack = .018, release = Math.min(dur*2.4 + .3, 2.6);
     const stopAt = t + attack + release + .05;
     const g = ctx.createGain();
     g.gain.setValueAtTime(.0001, t);
@@ -104,12 +106,44 @@
     const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = Math.min(6000, 2200 + freq*1.2); bp.Q.value = 1.2;
     const ng = ctx.createGain();
     ng.gain.setValueAtTime(.0001, t);
-    ng.gain.exponentialRampToValueAtTime(peak*.125, t + .0008);
+    ng.gain.exponentialRampToValueAtTime(peak*.06, t + .0008);
     ng.gain.exponentialRampToValueAtTime(.0001, t + .006);
     ns.connect(bp); bp.connect(ng); ng.connect(shelf); parts.push(bp, ng);
     ns.start(t, (midi % 7)*.004, .012);   // 雑音の読み始めは音の高さで決める（乱数にしない）
     o0.addEventListener('ended', () => parts.forEach(x => x.disconnect()));
   }
+
+  /* ---- 鳥の声 ----
+     音綴りの鳥の声（羽結び J節の chirp）と同じ作り：正弦波が音程へしゃくり上がる（a）か上から降りる（b）＋7〜9Hz の揺れ＋1オクターブ上の三角波。
+     長さだけ譜面に合わせて少し伸ばす（音綴りは 0.26 秒固定）。鳥ごとに声の高さのくせ（セント）と左右の位置を変える */
+  const BIRDS = { a:{ style:0, cents:+14, pan:-.45 }, b:{ style:1, cents:-16, pan:.45 } };
+  function bird(G, t, midi, len, vel, who) {
+    const ctx = G.ctx, B = BIRDS[who] || BIRDS.a, style = B.style;
+    const f = midiToFreq(midi)*Math.pow(2, B.cents/1200), dur = clamp(len*.8, .18, .42);
+    const out = ctx.createGain(); out.gain.value = vel/80;   // 旋律の山より約 4dB 小さく（少し離れた所で鳴く）
+    let pan = null;
+    if (ctx.createStereoPanner) { pan = ctx.createStereoPanner(); pan.pan.value = B.pan; out.connect(pan); pan.connect(G.master); }
+    else out.connect(G.master);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(.22, t + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, t + .012 + dur);
+    g.connect(out); g.connect(G.birdSend);
+    const track = o => { G.sources.add(o); o.addEventListener('ended', () => G.sources.delete(o)); return o; };
+    const a = track(ctx.createOscillator());
+    a.frequency.setValueAtTime(f*(style ? 1.12 : .82), t);
+    a.frequency.exponentialRampToValueAtTime(f*(style ? .99 : 1.015), t + .05);
+    a.frequency.exponentialRampToValueAtTime(f, t + .09);
+    const lfo = track(ctx.createOscillator()); lfo.frequency.value = style ? 9 : 7;
+    const lg = ctx.createGain(); lg.gain.value = f*.012; lfo.connect(lg); lg.connect(a.frequency);
+    const b = track(ctx.createOscillator()); b.type = 'triangle'; b.frequency.value = f*2;
+    const g2 = ctx.createGain(); g2.gain.value = style ? .05 : .08; b.connect(g2); g2.connect(g);
+    a.connect(g);
+    const stop = t + dur + .06;
+    for (const o of [a, b, lfo]) { o.start(t); o.stop(stop); }
+    a.addEventListener('ended', () => { [g, g2, lg, out, pan].forEach(x => x && x.disconnect()); });
+  }
+  const play1 = (G, at, e) => e.part === 'bird' ? bird(G, at, e.midi, e.dur, e.vel, e.who) : musicbox(G, at, e.midi, e.dur, e.vel, e.part);
 
   /* ---- 先読み予約 ---- */
   let G = null, playing = false, gen = 0, timer = 0, songStart = 0, loopN = 0, cursor = 0;
@@ -127,7 +161,7 @@
       const e = events[cursor], at = songStart + loopN*LOOP + e.t;
       if (at >= until) break;
       if (at < now - .05) { seekTo(now); continue; }
-      musicbox(G, Math.max(at, now), e.midi, e.dur, e.vel, e.part);
+      play1(G, Math.max(at, now), e);
       if (++cursor >= events.length) { cursor = 0; loopN++; }
     }
     timer = setTimeout(() => tick(myGen), LOOKAHEAD_MS);   // どの経路でも必ず次を予約する
@@ -189,7 +223,7 @@
     const R = buildGraph(ctx);
     R.master.gain.value = VOLUME;
     for (let n = 0; n*LOOP < sec; n++)
-      for (const e of events) { const t = n*LOOP + e.t; if (t < sec) musicbox(R, t, e.midi, e.dur, e.vel, e.part); }
+      for (const e of events) { const t = n*LOOP + e.t; if (t < sec) play1(R, t, e); }
     return ctx.startRendering();
   }
 
@@ -200,6 +234,7 @@
     onChange: f => listeners.add(f),
     render,
     loopSec: LOOP,
+    barSec,
     get activeNodes() { return G ? G.sources.size : 0; }
   };
 })();

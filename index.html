@@ -182,9 +182,9 @@ footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2
 .bgm-btn:hover,.bgm-btn[aria-pressed="true"]{color:var(--accent)}
 .bgm-ico{display:inline-flex;align-items:flex-end;gap:2px;height:12px}
 .bgm-ico i{display:block;width:2px;height:3px;border-radius:1px;background:currentColor;transition:height .5s var(--ease)}
-.bgm-btn[aria-pressed="true"] .bgm-ico i{animation:bgmbar 1.666s ease-in-out infinite}   /* 1小節（72BPM の3拍）で1周 */
-.bgm-btn[aria-pressed="true"] .bgm-ico i:nth-child(2){animation-delay:-.555s}
-.bgm-btn[aria-pressed="true"] .bgm-ico i:nth-child(3){animation-delay:-1.11s}
+.bgm-btn[aria-pressed="true"] .bgm-ico i{animation:bgmbar var(--bgm-bar,2.857s) ease-in-out infinite}   /* 曲の1小節で1周（--bgm-bar は JS が曲から入れる） */
+.bgm-btn[aria-pressed="true"] .bgm-ico i:nth-child(2){animation-delay:calc(var(--bgm-bar,2.857s)/-3)}
+.bgm-btn[aria-pressed="true"] .bgm-ico i:nth-child(3){animation-delay:calc(var(--bgm-bar,2.857s)*-2/3)}
 @keyframes bgmbar{0%,100%{height:3px}30%{height:12px}60%{height:6px}}
 .topbar .tb-right{display:flex;align-items:center;gap:clamp(14px,2.4vw,28px)}
 .bgm-top{font-style:italic;letter-spacing:.18em;padding:12px 0;margin:-12px 0;pointer-events:auto}   /* 押せる範囲を上下に広げても、上の帯の高さは変えない */
@@ -1053,6 +1053,7 @@ const SITE = {
 /* ---- BGM のボタン。押したときだけ鳴る（自動では鳴らさない） ---- */
 (() => {
   if (!self.BGM || !(window.AudioContext || window.webkitAudioContext)) return;
+  document.documentElement.style.setProperty('--bgm-bar', BGM.barSec + 's');
   const ui = new URLSearchParams(location.search).get('bgmui') || 'top';   // 置き場所の比較用：top／float／hero
   const top = document.querySelector('.bgm-top'), float = document.querySelector('.bgm-float'), hero = document.querySelector('.bgm-hero');
   const shown = ui === 'float' ? [float] : ui === 'hero' ? [hero, top] : [top];
