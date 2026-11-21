@@ -127,6 +127,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .btn-play{background:var(--accent);color:#14110c;font-weight:500}
 .btn-play svg{width:12px;height:12px}
 .btn-play:hover{transform:translateY(-3px);box-shadow:0 14px 34px -10px var(--accent)}
+.btn-sub{border:1px solid var(--accent);color:var(--accent)} /* the second, quieter button beside the main one */
+.btn-sub:hover{transform:translateY(-3px);background:rgba(255,255,255,.04)}
 .exhibit::before{content:attr(data-roman);position:absolute;left:50%;bottom:clamp(20px,5vh,50px);transform:translateX(-50%);font-family:var(--latin);font-style:italic;font-size:clamp(70px,15vw,220px);line-height:1;color:rgba(255,255,255,.035);white-space:nowrap;pointer-events:none;z-index:-1}
 @media (max-width:1024px){
   .exhibit,.exhibit:nth-of-type(even){grid-template-columns:1fr;min-height:auto;padding-top:110px;padding-bottom:110px}
@@ -666,6 +668,7 @@ footer .copy{margin-top:48px;font-size:12px;color:var(--muted);letter-spacing:.2
     <p class="ex-note reveal" style="--d:.22s">遊ぶには招待が必要です。フォームからメールアドレスを送ると、招待をお届けします（Claudeの無料アカウントで遊べます）。</p>
     <div class="ex-actions reveal" style="--d:.25s">
       <a class="btn btn-play js-play" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>申し込む ↗</a>
+      <a class="btn btn-sub" href="https://claude.ai/artifact/Hv6GAJERY3q1vB43N6Cmj2" target="_blank" rel="noopener">招待済の方はこちら ↗</a>
     </div>
   </div>
 </section>
